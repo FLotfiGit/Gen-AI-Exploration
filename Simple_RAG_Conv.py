@@ -53,9 +53,9 @@ messages = [
     SystemMessage(content="You are a helpful assistant."),
     HumanMessage(content=combined_input),
 ]
-
 # Invoke the model with the combined input
 result = model.invoke(messages)
+
 # Display the full result and content only
 print("\n--- User Request ---")
 print(query)
