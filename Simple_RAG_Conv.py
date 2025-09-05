@@ -12,6 +12,17 @@ cur_dir = os.getcwd()
 vdb_dir = os.path.join(cur_dir, 'db', 'chroma_db')
 rag_vdb_dir = os.path.join(vdb_dir, 'rag_articles')
 
+embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
+
+# Define 'chunks' as a list of documents to embed
+from langchain.docstore.document import Document
+
+chunks = [
+    Document(page_content="Retrieval-Augmented Generation (RAG) is a technique that combines retrieval of relevant documents with generative models.", metadata={"origin_url": "https://example.com/rag_intro"}),
+    Document(page_content="RAG is needed to provide up-to-date and factual information to language models by retrieving external knowledge.", metadata={"origin_url": "https://example.com/rag_need"}),
+    Document(page_content="RAG works by retrieving relevant documents and then using them as context for a generative model to answer questions.", metadata={"origin_url": "https://example.com/rag_work"}),
+]
+
 if not os.path.exists(rag_vdb_dir):
     db = Chroma.from_documents(
         chunks, embeddings_model, persist_directory=rag_vdb_dir
@@ -19,7 +30,6 @@ if not os.path.exists(rag_vdb_dir):
 else:
     print("Vector store already exists for rag topic. No need to initialize.")
 
-embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
 db = Chroma(persist_directory=rag_vdb_dir, embedding_function=embeddings_model)
 
 # Retriever
