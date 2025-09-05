@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from langchain_community.vectorstores import Chroma
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain.retrievers.multi_query_retriever import MultiQueryRetriever
 from langchain_openai import ChatOpenAI
 
 load_dotenv()
