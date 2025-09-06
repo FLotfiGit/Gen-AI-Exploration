@@ -4,6 +4,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain.retrievers.multi_query_retriever import MultiQueryRetriever
 from langchain_openai import ChatOpenAI
+import torch
 
 load_dotenv()
 
@@ -32,7 +33,7 @@ else:
 
 db = Chroma(persist_directory=rag_vdb_dir, embedding_function=embeddings_model)
 
-# Retriever
+# Retriever. ~~~~~~~~~
 query = "what is RAG? why do we need RAG? how does it work?"
 llm = ChatOpenAI(temperature=0)
 retriever_multi_query = MultiQueryRetriever.from_llm(
@@ -43,7 +44,7 @@ retriever_multi_query = MultiQueryRetriever.from_llm(
 relevant_chunks = retriever_multi_query.invoke(query)
 
 
-# Generation
+# Generation ~~~~~~~
 combined_input = (
     "Here is some context and source url that might help answer the question: "
     + query
@@ -56,7 +57,7 @@ combined_input = (
 
 
 # Create a ChatOpenAI model
-model = ChatOpenAI(model="gpt-4o")
+model = ChatOpenAI(model="gpt-4o").to("cuda" if torch.cuda.is_available() else "cpu")
 
 # Define the messages for the model
 messages = [
