@@ -51,3 +51,4 @@ for idx, group in enumerate(categories):
     print(f"\nReranked Category {idx+1}:")
     for ticket, score in scores:
         print(f"  - {ticket} (score: {score:.2f})")
+
