@@ -53,4 +53,4 @@ print("IDF:", idf)
 print("TF-IDF Vectors:")
 for vec in X:
     print(vec)
-# You can now use X for similarity search, clustering, etc.
+# Each vector corresponds to a document in the corpus
