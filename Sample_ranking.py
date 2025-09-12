@@ -52,3 +52,10 @@ for idx, group in enumerate(categories):
     for ticket, score in scores:
         print(f"  - {ticket} (score: {score:.2f})")
 
+def get_ticket_categories(tickets, threshold=0.5):
+    vectorizer = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = vectorizer.fit_transform(tickets)
+    similarity_matrix = cosine_similarity(tfidf_matrix)
+    categories = categorize_tickets(similarity_matrix, threshold)
+    return [[tickets[i] for i in group] for group in categories]
+
