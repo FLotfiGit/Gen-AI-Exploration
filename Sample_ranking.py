@@ -67,3 +67,7 @@ def get_longest_ticket(tickets):
     """Return the ticket issue with the most characters."""
     return max(tickets, key=len) if tickets else None
 
+def get_shortest_ticket(tickets):
+    """Return the ticket issue with the fewest characters."""
+    return min(tickets, key=len) if tickets else None
+
