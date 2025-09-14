@@ -59,3 +59,7 @@ def get_ticket_categories(tickets, threshold=0.5):
     categories = categorize_tickets(similarity_matrix, threshold)
     return [[tickets[i] for i in group] for group in categories]
 
+def count_tickets(tickets):
+    """Return the number of ticket issues."""
+    return len(tickets)
+
