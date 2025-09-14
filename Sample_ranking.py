@@ -71,3 +71,7 @@ def get_shortest_ticket(tickets):
     """Return the ticket issue with the fewest characters."""
     return min(tickets, key=len) if tickets else None
 
+def filter_tickets_by_keyword(tickets, keyword):
+    """Return a list of tickets containing the given keyword."""
+    return [ticket for ticket in tickets if keyword.lower() in ticket.lower()]
+
