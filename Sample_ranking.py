@@ -88,3 +88,7 @@ def reverse_tickets(tickets):
     """Return a list of tickets with their text reversed."""
     return [ticket[::-1] for ticket in tickets]
 
+def get_tickets_with_word(tickets, word):
+    """Return tickets containing the exact word (case-insensitive)."""
+    return [ticket for ticket in tickets if word.lower() in ticket.lower().split()]
+
