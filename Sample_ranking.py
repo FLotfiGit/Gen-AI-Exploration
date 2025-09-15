@@ -80,3 +80,7 @@ def count_tickets_with_numbers(tickets):
     import re
     return sum(1 for ticket in tickets if re.search(r'\d', ticket))
 
+def tickets_to_uppercase(tickets):
+    """Return a list of tickets converted to uppercase."""
+    return [ticket.upper() for ticket in tickets]
+
