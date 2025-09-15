@@ -75,3 +75,8 @@ def filter_tickets_by_keyword(tickets, keyword):
     """Return a list of tickets containing the given keyword."""
     return [ticket for ticket in tickets if keyword.lower() in ticket.lower()]
 
+def count_tickets_with_numbers(tickets):
+    """Return the number of tickets containing at least one digit."""
+    import re
+    return sum(1 for ticket in tickets if re.search(r'\d', ticket))
+
