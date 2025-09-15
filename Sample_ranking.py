@@ -84,3 +84,7 @@ def tickets_to_uppercase(tickets):
     """Return a list of tickets converted to uppercase."""
     return [ticket.upper() for ticket in tickets]
 
+def reverse_tickets(tickets):
+    """Return a list of tickets with their text reversed."""
+    return [ticket[::-1] for ticket in tickets]
+
