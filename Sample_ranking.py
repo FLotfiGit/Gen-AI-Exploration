@@ -92,3 +92,21 @@ def get_tickets_with_word(tickets, word):
     """Return tickets containing the exact word (case-insensitive)."""
     return [ticket for ticket in tickets if word.lower() in ticket.lower().split()]
 
+# Alternative similarity and clustering using SentenceTransformer and AgglomerativeClustering
+def cluster_tickets_with_embeddings(tickets, n_clusters=2):
+    """Cluster tickets using sentence embeddings and AgglomerativeClustering."""
+    try:
+        from sentence_transformers import SentenceTransformer
+        from sklearn.cluster import AgglomerativeClustering
+    except ImportError:
+        raise ImportError("Please install sentence-transformers and scikit-learn.")
+
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    embeddings = model.encode(tickets)
+    clustering = AgglomerativeClustering(n_clusters=n_clusters)
+    labels = clustering.fit_predict(embeddings)
+    clusters = [[] for _ in range(n_clusters)]
+    for ticket, label in zip(tickets, labels):
+        clusters[label].append(ticket)
+    return clusters
+
