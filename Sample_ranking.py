@@ -110,3 +110,11 @@ def cluster_tickets_with_embeddings(tickets, n_clusters=2):
         clusters[label].append(ticket)
     return clusters
 
+def jaccard_similarity(ticket1, ticket2):
+    """Compute Jaccard similarity between two ticket issues."""
+    set1 = set(ticket1.lower().split())
+    set2 = set(ticket2.lower().split())
+    intersection = set1 & set2
+    union = set1 | set2
+    return len(intersection) / len(union) if union else 0.0
+
