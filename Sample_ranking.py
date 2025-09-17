@@ -135,3 +135,12 @@ def levenshtein_distance(s1, s2):
         previous_row = current_row
     return previous_row[-1]
 
+def cosine_similarity_tickets(ticket1, ticket2):
+    """Compute cosine similarity between two ticket issues using TF-IDF."""
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    vectorizer = TfidfVectorizer(stop_words='english')
+    tfidf = vectorizer.fit_transform([ticket1, ticket2])
+    sim = cosine_similarity(tfidf[0:1], tfidf[1:2])
+    return sim[0][0]
+
