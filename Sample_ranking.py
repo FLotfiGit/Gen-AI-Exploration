@@ -144,3 +144,9 @@ def cosine_similarity_tickets(ticket1, ticket2):
     sim = cosine_similarity(tfidf[0:1], tfidf[1:2])
     return sim[0][0]
 
+def group_tickets_by_length(tickets, threshold=30):
+    """Group tickets into 'short' and 'long' based on a length threshold."""
+    short = [t for t in tickets if len(t) <= threshold]
+    long = [t for t in tickets if len(t) > threshold]
+    return {'short': short, 'long': long}
+
