@@ -154,4 +154,8 @@ def get_tickets_with_punctuation(tickets):
     """Return tickets containing any punctuation mark."""
     import string
     return [t for t in tickets if any(c in string.punctuation for c in t)]
+    
+def get_tickets_with_min_words(tickets, min_words=5):
+    """Return tickets with at least min_words words."""
+    return [t for t in tickets if len(t.split()) >= min_words]
 
