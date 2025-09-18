@@ -159,3 +159,7 @@ def get_tickets_with_min_words(tickets, min_words=5):
     """Return tickets with at least min_words words."""
     return [t for t in tickets if len(t.split()) >= min_words]
 
+def get_tickets_starting_with(tickets, start_word):
+    """Return tickets that start with the given word (case-insensitive)."""
+    return [t for t in tickets if t.lower().startswith(start_word.lower())]
+
