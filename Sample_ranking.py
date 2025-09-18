@@ -150,3 +150,8 @@ def group_tickets_by_length(tickets, threshold=30):
     long = [t for t in tickets if len(t) > threshold]
     return {'short': short, 'long': long}
 
+def get_tickets_with_punctuation(tickets):
+    """Return tickets containing any punctuation mark."""
+    import string
+    return [t for t in tickets if any(c in string.punctuation for c in t)]
+
