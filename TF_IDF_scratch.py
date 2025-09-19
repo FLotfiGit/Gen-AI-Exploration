@@ -73,3 +73,13 @@ def cosine_similarity(vec1, vec2):
 def euclidean_distance(vec1, vec2):
     """Compute Euclidean distance between two TF-IDF vectors."""
     return math.sqrt(sum((a-b)**2 for a, b in zip(vec1, vec2)))
+
+def cluster_documents_kmeans(vectors, n_clusters=2):
+    """Cluster TF-IDF vectors using KMeans."""
+    try:
+        from sklearn.cluster import KMeans
+    except ImportError:
+        raise ImportError("Please install scikit-learn.")
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    labels = kmeans.fit_predict(vectors)
+    return labels
