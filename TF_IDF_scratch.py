@@ -69,3 +69,7 @@ def cosine_similarity(vec1, vec2):
     norm1 = math.sqrt(sum(a*a for a in vec1))
     norm2 = math.sqrt(sum(b*b for b in vec2))
     return dot / (norm1 * norm2) if norm1 and norm2 else 0.0
+
+def euclidean_distance(vec1, vec2):
+    """Compute Euclidean distance between two TF-IDF vectors."""
+    return math.sqrt(sum((a-b)**2 for a, b in zip(vec1, vec2)))
