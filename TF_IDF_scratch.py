@@ -55,6 +55,14 @@ for vec in X:
     print(vec)
 # Each vector corresponds to a document in the corpus
 
+def jaccard_similarity(doc1, doc2):
+    """Compute Jaccard similarity between two documents (strings)."""
+    set1 = set(tokenize(doc1))
+    set2 = set(tokenize(doc2))
+    intersection = set1 & set2
+    union = set1 | set2
+    return len(intersection) / len(union) if union else 0.0
+
 def cosine_similarity(vec1, vec2):
     """Compute cosine similarity between two TF-IDF vectors."""
     dot = sum(a*b for a, b in zip(vec1, vec2))
