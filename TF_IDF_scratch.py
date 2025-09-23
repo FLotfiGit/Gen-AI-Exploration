@@ -99,3 +99,7 @@ def average_vector(vectors):
         for i, val in enumerate(vec):
             avg[i] += val
     return [x / n for x in avg]
+    
+def top_idf_terms(idf, top_n=5):
+    """Return the top N terms with highest IDF values."""
+    return sorted(idf.items(), key=lambda x: x[1], reverse=True)[:top_n]
