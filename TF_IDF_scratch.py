@@ -87,3 +87,15 @@ def cluster_documents_kmeans(vectors, n_clusters=2):
 def manhattan_distance(vec1, vec2):
     """Compute Manhattan distance between two TF-IDF vectors."""
     return sum(abs(a-b) for a, b in zip(vec1, vec2))
+
+def average_vector(vectors):
+    """Compute the average TF-IDF vector for a list of vectors."""
+    if not vectors:
+        return []
+    n = len(vectors)
+    dim = len(vectors[0])
+    avg = [0.0] * dim
+    for vec in vectors:
+        for i, val in enumerate(vec):
+            avg[i] += val
+    return [x / n for x in avg]
