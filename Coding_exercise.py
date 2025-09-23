@@ -121,3 +121,8 @@ def jaccard_similarity(doc1, doc2):
     intersection = set1 & set2
     union = set1 | set2
     return len(intersection) / len(union) if union else 0.0
+
+def euclidean_distance_sparse(a, b):
+    """Compute Euclidean distance between two sparse TF-IDF vectors."""
+    keys = a.keys() | b.keys()
+    return math.sqrt(sum((a.get(k,0)-b.get(k,0))**2 for k in keys))
