@@ -103,3 +103,11 @@ def average_vector(vectors):
 def top_idf_terms(idf, top_n=5):
     """Return the top N terms with highest IDF values."""
     return sorted(idf.items(), key=lambda x: x[1], reverse=True)[:top_n]
+
+def doc_with_highest_avg_tfidf(vectors, corpus):
+    """Return the document with the highest average TF-IDF value."""
+    if not vectors or not corpus:
+        return None
+    avg_scores = [sum(vec)/len(vec) if len(vec) > 0 else 0.0 for vec in vectors]
+    idx = avg_scores.index(max(avg_scores))
+    return corpus[idx]
