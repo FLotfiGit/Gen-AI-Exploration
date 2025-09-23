@@ -83,3 +83,7 @@ def cluster_documents_kmeans(vectors, n_clusters=2):
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     labels = kmeans.fit_predict(vectors)
     return labels
+
+def manhattan_distance(vec1, vec2):
+    """Compute Manhattan distance between two TF-IDF vectors."""
+    return sum(abs(a-b) for a, b in zip(vec1, vec2))
