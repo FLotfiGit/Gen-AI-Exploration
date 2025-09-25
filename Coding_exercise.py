@@ -131,3 +131,9 @@ def manhattan_distance_sparse(a, b):
     """Compute Manhattan distance between two sparse TF-IDF vectors."""
     keys = a.keys() | b.keys()
     return sum(abs(a.get(k,0)-b.get(k,0)) for k in keys)
+
+def average_sparse_vector(vec):
+    """Compute the average value of a sparse TF-IDF vector."""
+    if not vec:
+        return 0.0
+    return sum(vec.values()) / len(vec)
