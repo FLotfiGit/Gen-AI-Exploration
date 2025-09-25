@@ -126,3 +126,8 @@ def euclidean_distance_sparse(a, b):
     """Compute Euclidean distance between two sparse TF-IDF vectors."""
     keys = a.keys() | b.keys()
     return math.sqrt(sum((a.get(k,0)-b.get(k,0))**2 for k in keys))
+
+def manhattan_distance_sparse(a, b):
+    """Compute Manhattan distance between two sparse TF-IDF vectors."""
+    keys = a.keys() | b.keys()
+    return sum(abs(a.get(k,0)-b.get(k,0)) for k in keys)
