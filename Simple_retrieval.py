@@ -46,7 +46,7 @@ class TFIDF:
                 df[t] +=1
         self.vocab = {t:i for t,i in enumerate(sorted(tokens))}
         N = len(docs)
-        idf = {math.log((1+N)/(1+df[t])+1) for t in tokens}
+        self.idf = {math.log((1+N)/(1+df[t])+1) for t in tokens}
     
     def transform(self, docs):
         rows ={}
