@@ -86,7 +86,7 @@ def simple_retrieve(docs, query, chunk_size=200, overlap=50, k=3):
 
     # (3): ranking
     ranked = top_cosine(X,qv,k)
-    return [owners[i], all_chunks[i], score for i,score in ranked]
+    return [(owners[i], all_chunks[i], score) for i,score in ranked]
 
 
 
