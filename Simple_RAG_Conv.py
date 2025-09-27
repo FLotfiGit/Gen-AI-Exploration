@@ -80,3 +80,7 @@ def extract_source_urls(chunks):
 def extract_page_contents(chunks):
     """Extract all page contents from a list of Document chunks."""
     return [chunk.page_content for chunk in chunks]
+
+def filter_chunks_by_keyword(chunks, keyword):
+    """Return Document chunks whose page_content contains the keyword (case-insensitive)."""
+    return [chunk for chunk in chunks if keyword.lower() in chunk.page_content.lower()]
