@@ -84,3 +84,7 @@ def extract_page_contents(chunks):
 def filter_chunks_by_keyword(chunks, keyword):
     """Return Document chunks whose page_content contains the keyword (case-insensitive)."""
     return [chunk for chunk in chunks if keyword.lower() in chunk.page_content.lower()]
+
+def count_chunks(chunks):
+    """Return the number of Document chunks."""
+    return len(chunks)
