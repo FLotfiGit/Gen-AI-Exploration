@@ -72,3 +72,7 @@ print("\n--- User Request ---")
 print(query)
 print("\n--- Generated Response ---")
 print(result.content)
+
+def extract_source_urls(chunks):
+    """Extract all source URLs from a list of Document chunks."""
+    return [chunk.metadata.get('origin_url') for chunk in chunks if 'origin_url' in chunk.metadata]
