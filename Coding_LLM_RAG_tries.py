@@ -46,3 +46,20 @@ def mmr(q, E, k=5,lam = 0.7):
     
     return chosen
 
+#--------------------------------------------
+# sliding window chunker (split into )
+
+def chunk_text(s,size = 400, overlap=100):
+    out =[]
+    i = 0
+
+    while i<len(s):
+        out.append([s[i:i+size]])
+        if i+size >=len(s):
+            break
+        i += size - overlap
+    return out
+#---------------------------------------------
+
+
+
