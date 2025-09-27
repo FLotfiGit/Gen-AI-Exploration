@@ -95,7 +95,7 @@ class TFIDF:
             rows.append(vec)
         return rows
     
-    def cosine_sparse(a,b):
+    def cosine_sparse(self,a,b):
         keys = a.keys() & b.keys()
         num = sum(a[i]*b[i] for i in keys)
         na = math.sqrt(sum(v*v for v in a.values()))
@@ -103,10 +103,24 @@ class TFIDF:
         return 0 if na==0 or nb==0 else num/(na*nb)
 
     
-    def topk_sparse(query_vec,doc_vecs, k=5):
-        sc = [(i, cosine_sparse(query_vec,v)) for i, v in enumerate(doc_vecs)]
+    def topk_sparse(self,query_vec,doc_vecs, k=5):
+        sc = [(i,self.cosine_sparse(query_vec,v)) for i, v in enumerate(doc_vecs)]
         sc.sort(key=lambda x:x[1],reverse=True)
         return sc[:k]
 
+    #-------------------------------------
+    # End-to-End Mini RAG Retrieve-then-MMR :
 
+
+
+
+
+    #-------------------------------------
+    # Simple Passage Scorer with BM25 (RAG sparse fallback): 
+
+
+
+    #--------------------------------------
+    # toy beam search decoder :
+    
 
