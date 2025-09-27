@@ -76,3 +76,7 @@ print(result.content)
 def extract_source_urls(chunks):
     """Extract all source URLs from a list of Document chunks."""
     return [chunk.metadata.get('origin_url') for chunk in chunks if 'origin_url' in chunk.metadata]
+
+def extract_page_contents(chunks):
+    """Extract all page contents from a list of Document chunks."""
+    return [chunk.page_content for chunk in chunks]
