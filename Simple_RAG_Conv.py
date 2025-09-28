@@ -96,3 +96,7 @@ def unique_source_urls(chunks):
 def filter_chunks_by_url(chunks, url):
     """Return Document chunks with a specific origin_url."""
     return [chunk for chunk in chunks if chunk.metadata.get('origin_url') == url]
+
+def count_unique_source_urls(chunks):
+    """Return the number of unique origin URLs in Document chunks."""
+    return len(unique_source_urls(chunks))
