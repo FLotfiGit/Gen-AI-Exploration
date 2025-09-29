@@ -37,3 +37,29 @@ class TFIDF:
         self.fit(docs)
         return self.transform(docs)
 
+
+
+
+########## fun trick 
+# rand10 from rand7:
+
+import random
+
+def rand7():
+    return random.randint(1, 7)
+
+def rand10():
+    while True:
+        # Step 1: make 1..49
+        a, b = rand7(), rand7()
+        x = (a - 1) * 7 + b
+        if x <= 40:
+            return ((x - 1) % 10) + 1
+        
+        # Step 2: recycle overflow -> rand9()
+        y = x - 40  # 1..9
+        c = rand7()
+        z = (y - 1) * 7 + c  # 1..63
+        if z <= 60:
+            return ((z - 1) % 10) + 1
+        # otherwise loop again
