@@ -63,3 +63,26 @@ def rand10():
         if z <= 60:
             return ((z - 1) % 10) + 1
         # otherwise loop again
+
+
+######## simple backward:
+import torch
+import torch.nn as nn
+import torch.functional as F
+
+x = torch.randn(512,128)
+y = torch.randn(512,1)
+model = nn.Linear(128,1)
+opt = torch.optim.SGD(model.parameters(),lr=0.1)
+
+for step in range(2000):
+    y_pred = model(x)
+    loss = F.mse_loss(y_pred,y)
+
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+
+
+######## 
+
