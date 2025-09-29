@@ -41,7 +41,7 @@ class TFIDF:
 
 
 ########## fun trick 
-# rand10 from rand7:
+# rand10 from rand7: (efficient)
 
 import random
 
