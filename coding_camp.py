@@ -45,6 +45,13 @@ def jaccard_similarity(doc1, doc2):
     union = set1 | set2
     return len(intersection) / len(union) if union else 0.0
 
+def cosine_similarity_sparse(a, b):
+    """Compute cosine similarity between two sparse term-frequency vectors (dicts)."""
+    num = sum(a.get(i,0)*b.get(i,0) for i in a.keys() | b.keys())
+    na = math.sqrt(sum(v*v for v in a.values()))
+    nb = math.sqrt(sum(v*v for v in b.values()))
+    return 0.0 if na==0 or nb==0 else num/(na*nb)
+
 
 
 
