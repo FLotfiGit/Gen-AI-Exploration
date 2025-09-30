@@ -101,3 +101,39 @@ for step in range(2000):
 
 ######## 
 
+# quicksort (1) : while
+def sortArray(self, nums: List[int]) -> List[int]:
+        
+        def quicksort(l,r):
+            if l>=r:
+                return
+            i = l
+            pivot = nums[r]
+            for j in range(l,r):
+                if nums[j]<=pivot:
+                    nums[i],nums[j]=nums[j],nums[i]
+                    i +=1
+            nums[i],nums[r] = nums[r],nums[i]
+            quicksort(l,i-1)
+            quicksort(i+1,r)
+            
+
+        quicksort(0,len(nums)-1)
+        return nums
+
+# quicksort (2) : for
+def quicksort(l,r):
+            if l>=r:
+                return
+            i = l
+            pivot = nums[r]
+            for j in range(l,r):
+                if nums[j]<=pivot:
+                    nums[i],nums[j]=nums[j],nums[i]
+                    i +=1
+            nums[i],nums[r] = nums[r],nums[i]
+            quicksort(l,i-1)
+            quicksort(i+1,r)
+            
+
+        quicksort(0,len(nums)-1)
