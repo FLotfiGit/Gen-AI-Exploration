@@ -37,6 +37,14 @@ class TFIDF:
         self.fit(docs)
         return self.transform(docs)
 
+def jaccard_similarity(doc1, doc2):
+    """Compute Jaccard similarity between two documents (strings)."""
+    set1 = set(doc1.lower().split())
+    set2 = set(doc2.lower().split())
+    intersection = set1 & set2
+    union = set1 | set2
+    return len(intersection) / len(union) if union else 0.0
+
 
 
 
