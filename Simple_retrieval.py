@@ -193,3 +193,29 @@ top = hybrid_rank(tfidf_n, emb_n, alpha=0.6, k=3)
 print("Top results (idx, hybrid, tfidf, emb):")
 for item in top:
     print(item, "->", docs[item[0]])
+
+
+#################################
+## add MMR for diversity
+def mmr_rerank(candidates_idx, doc_emb, q_emb, lam=0.7, k=3):
+    # candidates_idx: list of doc indices sorted by initial score (e.g., hybrid)
+    picked = []
+    cand = list(candidates_idx)
+    # Precompute sims
+    q_sims = torch.nn.functional.cosine_similarity(q_emb.unsqueeze(0), doc_emb[cand], dim=1).cpu().numpy().ravel()  # relevance
+    while cand and len(picked) < k:
+        best, best_score = None, -1e9
+        for c_i, i in enumerate(cand):
+            rel = q_sims[c_i]
+            div = 0.0
+            if picked:
+                div = max(torch.nn.functional.cosine_similaritysim(doc_emb[i], doc_emb[j]).item() for j in picked)
+            score = lam * rel - (1 - lam) * div
+            if score > best_score:
+                best, best_score = i, score
+        picked.append(best)
+        # remove chosen from candidate list & q_sims
+        rm = cand.index(best)
+        cand.pop(rm)
+        q_sims = np.delete(q_sims, rm)
+    return picked
