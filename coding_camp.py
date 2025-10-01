@@ -137,6 +137,11 @@ def quicksort(l,r):
             
 
         quicksort(0,len(nums)-1)
+###########################################
+##########################################
+##########################################
+
+## LoRA simple code
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
