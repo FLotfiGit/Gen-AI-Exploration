@@ -100,6 +100,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from transformers import BertTokenizer, BertModel
 import torch
+from sklearn.preprocessing import MinMaxScaler
 
 # Example corpus
 docs = [
@@ -143,3 +144,52 @@ embedding_scores = (doc_embeddings @ query_embedding).numpy()
 print("\nEmbedding Scores:")
 for i, score in enumerate(embedding_scores):
     print(f"Doc {i}: {score:.4f}")
+
+
+########################
+#### Hybrid (TFIDF + Embedding)
+
+# -------- Sparse: TF-IDF cosine --------
+tfidf = TfidfVectorizer()
+X = tfidf.fit_transform(docs)              # (n_docs, |V|)
+q_vec = tfidf.transform([query])           # (1, |V|)
+tfidf_scores = cosine_similarity(q_vec, X).ravel()  # shape: (n_docs,)
+
+# -------- Dense: Encoder embeddings cosine --------
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+bert_model = BertModel.from_pretrained("bert-base-uncased")
+
+def get_bert_embedding(text):
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    with torch.no_grad():
+        outputs = bert_model(**inputs)
+    return outputs.last_hidden_state[:, 0, :].squeeze(0)
+
+doc_emb = torch.stack([get_bert_embedding(doc) for doc in docs])
+q_emb = get_bert_embedding(query)
+
+# Normalize embeddings
+doc_emb = torch.nn.functional.normalize(doc_emb, p=2, dim=1)
+q_emb = torch.nn.functional.normalize(q_emb, p=2, dim=0)
+
+emb_scores = (doc_emb @ q_emb).cpu().numpy().ravel()
+
+# -------- Normalize each score vector to [0,1] before blending --------
+def normalize(x):
+    x = x.reshape(-1, 1)
+    return MinMaxScaler().fit_transform(x).ravel()
+
+tfidf_n = normalize(tfidf_scores)
+emb_n   = normalize(emb_scores)
+
+# -------- Hybrid score: alpha * dense + (1 - alpha) * sparse --------
+def hybrid_rank(tfidf_norm, emb_norm, alpha=0.6, k=3):
+    scores = alpha * emb_norm + (1 - alpha) * tfidf_norm
+    order = np.argsort(-scores)[:k]
+    return [(i, float(scores[i]), float(tfidf_norm[i]), float(emb_norm[i])) for i in order]
+
+top = hybrid_rank(tfidf_n, emb_n, alpha=0.6, k=3)
+
+print("Top results (idx, hybrid, tfidf, emb):")
+for item in top:
+    print(item, "->", docs[item[0]])
