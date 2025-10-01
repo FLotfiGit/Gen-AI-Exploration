@@ -124,7 +124,9 @@ for step in range(2000):
 
 ######## 
 
-# quicksort (1) : while
+from typing import List
+
+# quicksort (1) : For
 def sortArray(self, nums: List[int]) -> List[int]:
         
         def quicksort(l,r):
@@ -144,22 +146,28 @@ def sortArray(self, nums: List[int]) -> List[int]:
         quicksort(0,len(nums)-1)
         return nums
 
-# quicksort (2) : for
-def quicksort(l,r):
-            if l>=r:
-                return
-            i = l
-            pivot = nums[r]
-            for j in range(l,r):
-                if nums[j]<=pivot:
-                    nums[i],nums[j]=nums[j],nums[i]
-                    i +=1
-            nums[i],nums[r] = nums[r],nums[i]
-            quicksort(l,i-1)
-            quicksort(i+1,r)
-            
+# quickselect: Find the kth largest element in a list
+def quickselect(nums, k):
+    """
+    Returns the kth largest element (1-based) in nums.
+    """
+    l, r = 0, len(nums) - 1
+    k = len(nums) - k  # convert to kth smallest
 
-        quicksort(0,len(nums)-1)
+    while l <= r:
+        pivot = nums[r]
+        i = l
+        for j in range(l, r):
+            if nums[j] <= pivot:
+                nums[i], nums[j] = nums[j], nums[i]
+                i += 1
+        nums[i], nums[r] = nums[r], nums[i]
+        if i == k:
+            return nums[i]
+        elif i < k:
+            l = i + 1
+        else:
+            r = i - 1
 ###########################################
 ##########################################
 ##########################################

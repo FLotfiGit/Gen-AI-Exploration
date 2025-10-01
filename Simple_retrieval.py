@@ -90,3 +90,56 @@ def simple_retrieve(docs, query, chunk_size=200, overlap=50, k=3):
 
 
 
+################## compare sparse vs dense retrieval ###########
+# --------------------------
+# TF-IDF vs Embedding Retrieval
+# --------------------------
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from transformers import BertTokenizer, BertModel
+import torch
+
+# Example corpus
+docs = [
+    "The doctor prescribed medicine for the patient.",
+    "The physician gave treatment in the hospital.",
+    "The engineer designed a new bridge.",
+    "A chef cooked pasta in the kitchen."
+]
+
+query = "medical doctor"
+
+# ---------- TF-IDF ----------
+tfidf = TfidfVectorizer()
+tfidf_matrix = tfidf.fit_transform(docs + [query])  # fit on all docs + query
+query_vec = tfidf_matrix[-1]
+doc_vecs = tfidf_matrix[:-1]
+
+tfidf_scores = cosine_similarity(query_vec, doc_vecs).flatten()
+
+print("TF-IDF Scores:")
+for i, score in enumerate(tfidf_scores):
+    print(f"Doc {i}: {score:.4f}")
+
+# ---------- Embeddings ----------
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+bert_model = BertModel.from_pretrained("bert-base-uncased")
+
+def get_bert_embedding(text):
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    with torch.no_grad():
+        outputs = bert_model(**inputs)
+    # Use the [CLS] token embedding as sentence representation
+    return outputs.last_hidden_state[:, 0, :].squeeze(0)
+
+doc_embeddings = torch.stack([get_bert_embedding(doc) for doc in docs])
+query_embedding = get_bert_embedding(query)
+
+embedding_scores = (doc_embeddings @ query_embedding).numpy()
+# (dot product since embeddings are normalized in this model)
+
+print("\nEmbedding Scores:")
+for i, score in enumerate(embedding_scores):
+    print(f"Doc {i}: {score:.4f}")
