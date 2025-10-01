@@ -52,6 +52,22 @@ def cosine_similarity_sparse(a, b):
     nb = math.sqrt(sum(v*v for v in b.values()))
     return 0.0 if na==0 or nb==0 else num/(na*nb)
 
+def euclidean_distance_sparse(a, b):
+    """Compute Euclidean distance between two sparse term-frequency vectors (dicts)."""
+    keys = a.keys() | b.keys()
+    return math.sqrt(sum((a.get(k,0)-b.get(k,0))**2 for k in keys))
+
+def manhattan_distance_sparse(a, b):
+    """Compute Manhattan distance between two sparse term-frequency vectors (dicts)."""
+    keys = a.keys() | b.keys()
+    return sum(abs(a.get(k,0)-b.get(k,0)) for k in keys)
+
+def average_sparse_vector(vec):
+    """Compute the average value of a sparse term-frequency vector (dict)."""
+    if not vec:
+        return 0.0
+    return sum(vec.values()) / len(vec)
+
 
 
 
