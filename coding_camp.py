@@ -104,7 +104,14 @@ import torch.functional as F
 x = torch.randn(512,128)
 y = torch.randn(512,1)
 model = nn.Linear(128,1)
-opt = torch.optim.SGD(model.parameters(),lr=0.1)
+model = nn.Sequential(
+    nn.Linear(128, 64),
+    nn.ReLU(),
+    nn.Linear(64, 32),
+    nn.ReLU(),
+    nn.Linear(32, 1)
+)
+opt = torch.optim.SGD(model.parameters(), lr=0.1)
 
 for step in range(2000):
     y_pred = model(x)
