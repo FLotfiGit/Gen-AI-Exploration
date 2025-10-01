@@ -137,3 +137,34 @@ def quicksort(l,r):
             
 
         quicksort(0,len(nums)-1)
+
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+# Load base model and tokenizer
+model_name = "gpt2"
+model = AutoModelForCausalLM.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+# Prepare model for LoRA
+model = prepare_model_for_kbit_training(model)
+lora_config = LoraConfig(
+    r=8,              # LoRA rank
+    lora_alpha=16,    # LoRA scaling
+    target_modules=["c_attn"],  # Layer(s) to apply LoRA to (for GPT-2)
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+model = get_peft_model(model, lora_config)
+
+# Example data
+texts = ["Hello, how are you?", "LoRA is a parameter-efficient fine-tuning method."]
+inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
+
+# Dummy training loop (for demonstration)
+labels = inputs["input_ids"]
+outputs = model(**inputs, labels=labels)
+loss = outputs.loss
+loss.backward()
+print("Loss:", loss.item())
