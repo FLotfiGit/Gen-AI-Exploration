@@ -101,6 +101,9 @@ import numpy as np
 from transformers import BertTokenizer, BertModel
 import torch
 from sklearn.preprocessing import MinMaxScaler
+from sentence_transformers import SentenceTransformer
+import faiss
+import hnswlib
 
 # Example corpus
 docs = [
@@ -270,3 +273,38 @@ docs = [
 X = CountVectorizer(lowercase=True, token_pattern=r"\b\w+\b").fit_transform(docs)  # [2, V] sparse
 sim = cosine_similarity(X[0], X[1])[0,0]
 print(f"Cosine similarity (sklearn BoW): {sim:.4f}")
+
+# Example corpus and query
+corpus = [
+    "The cat sits on the mat.",
+    "Dogs are great pets.",
+    "Retrieval-augmented generation is powerful.",
+    "Dense retrieval uses embeddings."
+]
+query = "How does dense retrieval work?"
+
+# Encode corpus and query
+model = SentenceTransformer('all-MiniLM-L6-v2')
+corpus_emb = model.encode(corpus, normalize_embeddings=True)
+query_emb = model.encode([query], normalize_embeddings=True)
+
+# --- FAISS ANN Search ---
+index_faiss = faiss.IndexFlatIP(corpus_emb.shape[1])  # Inner product (cosine if normalized)
+index_faiss.add(corpus_emb)
+D, I = index_faiss.search(query_emb, k=2)  # Top-2 results
+
+print("FAISS Results:")
+for idx in I[0]:
+    print(f"- {corpus[idx]}")
+
+# --- HNSW ANN Search ---
+dim = corpus_emb.shape[1]
+num_elements = len(corpus)
+index_hnsw = hnswlib.Index(space='cosine', dim=dim)
+index_hnsw.init_index(max_elements=num_elements, ef_construction=100, M=16)
+index_hnsw.add_items(corpus_emb, np.arange(num_elements))
+labels, distances = index_hnsw.knn_query(query_emb, k=2)
+
+print("\nHNSW Results:")
+for idx in labels[0]:
+    print(f"- {corpus[idx]}")

@@ -75,7 +75,7 @@ class TFIDF:
 
         df = Counter()
         for d in docs:
-            toks = d.lowe().split()
+            toks = d.lower().split()
             for t in toks: df[t] +=1
         self.vocab = {t:i for i,t in enumerate(sorted(df))}
         N = len(docs)
@@ -122,5 +122,5 @@ class TFIDF:
 
     #--------------------------------------
     # toy beam search decoder :
-    
+
 
