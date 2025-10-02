@@ -219,3 +219,42 @@ def mmr_rerank(candidates_idx, doc_emb, q_emb, lam=0.7, k=3):
         cand.pop(rm)
         q_sims = np.delete(q_sims, rm)
     return picked
+
+
+############################################
+### bag of word: 
+
+import re
+import numpy as np
+from collections import Counter
+
+def tokenize(text: str):
+    # very simple tokenizer: lowercase + word characters
+    return re.findall(r"\b\w+\b", text.lower())
+
+def bow_vectorize(doc: str, vocab: list):
+    counts = Counter(tokenize(doc))
+    return np.array([counts[w] for w in vocab], dtype=float)
+
+def cosine_sim(a: np.ndarray, b: np.ndarray, eps: float = 1e-12):
+    return float(a @ b) / (np.linalg.norm(a) * np.linalg.norm(b) + eps)
+
+def bow_cosine_similarity(doc1: str, doc2: str):
+    # 1) build shared vocabulary (union of tokens)
+    tokens1, tokens2 = tokenize(doc1), tokenize(doc2)
+    vocab = sorted(set(tokens1) | set(tokens2))
+    # 2) count vectors
+    v1, v2 = bow_vectorize(doc1, vocab), bow_vectorize(doc2, vocab)
+    # 3) cosine similarity on raw counts (classic BoW)
+    return cosine_sim(v1, v2), {"vocab": vocab, "vec1": v1, "vec2": v2}
+
+# ----------------- example -----------------
+if __name__ == "__main__":
+    d1 = "Deep learning models learn representations from data."
+    d2 = "Machine learning methods learn useful representations."
+
+    sim, debug = bow_cosine_similarity(d1, d2)
+    print(f"Cosine similarity (Bag-of-Words counts): {sim:.4f}")
+    # Optional: peek at the vectors
+    # print(debug["vocab"])
+    # print(debug["vec1"]); print(debug["vec2"])
