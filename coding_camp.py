@@ -204,3 +204,12 @@ outputs = model(**inputs, labels=labels)
 loss = outputs.loss
 loss.backward()
 print("Loss:", loss.item())
+
+
+################
+# single head attention
+
+d = Q.size[-1]
+score = (Q @ K) /(d**0.5)
+weight = F.softmax(score)
+out = weight @ V
