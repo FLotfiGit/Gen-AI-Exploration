@@ -258,3 +258,15 @@ if __name__ == "__main__":
     # Optional: peek at the vectors
     # print(debug["vocab"])
     # print(debug["vec1"]); print(debug["vec2"])
+
+###------------ BoW:
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+docs = [
+    "Deep learning models learn representations from data.",
+    "Machine learning methods learn useful representations."
+]
+X = CountVectorizer(lowercase=True, token_pattern=r"\b\w+\b").fit_transform(docs)  # [2, V] sparse
+sim = cosine_similarity(X[0], X[1])[0,0]
+print(f"Cosine similarity (sklearn BoW): {sim:.4f}")
