@@ -274,7 +274,16 @@ X = CountVectorizer(lowercase=True, token_pattern=r"\b\w+\b").fit_transform(docs
 sim = cosine_similarity(X[0], X[1])[0,0]
 print(f"Cosine similarity (sklearn BoW): {sim:.4f}")
 
+
+
+###############################################
+###############################################
+## ANN search: FAISS and HNSW samples
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
 # Example corpus and query
+
 corpus = [
     "The cat sits on the mat.",
     "Dogs are great pets.",
