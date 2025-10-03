@@ -61,16 +61,13 @@ def mmr(q, E, k=5,lam = 0.7):
 #--------------------------------------------
 # sliding window chunker (split into )
 
-def chunk_text(s, size=400, overlap=100):
-    """
-    Split text s into overlapping chunks of given size and overlap.
-    Returns a list of string chunks.
-    """
-    out = []
+def chunk_text(s,size = 400, overlap=100):
+    out =[]
     i = 0
-    while i < len(s):
-        out.append(s[i:i+size])
-        if i+size >= len(s):
+
+    while i<len(s):
+        out.append([s[i:i+size]])
+        if i+size >=len(s):
             break
         i += size - overlap
     return out
@@ -92,25 +89,6 @@ def truncate_tokens(tokens, max_len):
 from collections import Counter
 
 class TFIDF:
-    # ...existing code...
-
-
-# -------------------
-# Simple test/demo for TFIDF
-
-if __name__ == "__main__":
-    docs = [
-        "The quick brown fox jumps over the lazy dog",
-        "Never jump over the lazy dog quickly",
-        "A fox is quick and brown"
-    ]
-    tfidf = TFIDF()
-    tfidf.fit(docs)
-    vecs = tfidf.transform(docs)
-    print("Feature names:", tfidf.get_feature_names())
-    print("Sparse vector for doc 0:", vecs[0])
-    print("Dense vector for doc 0:", tfidf.sparse_to_dense(vecs[0]))
-    pass
     def get_feature_names(self):
         """
         Return the list of feature names (vocabulary terms) in order of their indices.
@@ -125,8 +103,8 @@ if __name__ == "__main__":
         for i, v in vec.items():
             dense[i] = v
         return dense
-    def fit(self,docs):
 
+    def fit(self,docs):
         df = Counter()
         for d in docs:
             toks = d.lower().split()
@@ -137,7 +115,6 @@ if __name__ == "__main__":
 
     def transform(self,docs):
         rows = []
-
         for d in docs:
             toks = d.lower().split()
             tf = Counter(toks)
@@ -156,11 +133,27 @@ if __name__ == "__main__":
         nb = math.sqrt(sum(v*v for v in b.values()))
         return 0 if na==0 or nb==0 else num/(na*nb)
 
-    
     def topk_sparse(self,query_vec,doc_vecs, k=5):
         sc = [(i,self.cosine_sparse(query_vec,v)) for i, v in enumerate(doc_vecs)]
         sc.sort(key=lambda x:x[1],reverse=True)
         return sc[:k]
+
+# -------------------
+# Simple test/demo for TFIDF
+
+if __name__ == "__main__":
+    docs = [
+        "The quick brown fox jumps over the lazy dog",
+        "Never jump over the lazy dog quickly",
+        "A fox is quick and brown"
+    ]
+    tfidf = TFIDF()
+    tfidf.fit(docs)
+    vecs = tfidf.transform(docs)
+    print("Feature names:", tfidf.get_feature_names())
+    print("Sparse vector for doc 0:", vecs[0])
+    print("Dense vector for doc 0:", tfidf.sparse_to_dense(vecs[0]))
+    pass
 
     #-------------------------------------
     # End-to-End Mini RAG Retrieve-then-MMR :
