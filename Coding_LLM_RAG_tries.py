@@ -1,16 +1,25 @@
 import math
 # Cosine similarity, norm 
 def l2_norm(v):
+    """
+    Compute the L2 norm (unit vector) of a list/vector.
+    """
     n = math.sqrt(sum(x*x for x in v))
     return [0.0]*len(v) if n==0 else [x/n for x in v]
 
 def cosine(a,b):
+    """
+    Compute cosine similarity between two vectors.
+    """
     na, nb = l2_norm(a), l2_norm(b)
     return sum(x*y for x,y in zip(na,nb))
 
 #---------------------------
 # query q and list E, top-k similar?
 def topk_cosine(q,E,k=5):
+    """
+    Return top-k most similar vectors to query q from list E using cosine similarity.
+    """
     qn = l2_norm(q)
     sims = []
     for i,e in enumerate(E):
@@ -22,6 +31,9 @@ def topk_cosine(q,E,k=5):
 # MMR reranker (balance between relevant to q and diversity evidence)
 
 def mmr(q, E, k=5,lam = 0.7):
+    """
+    Maximal Marginal Relevance (MMR) reranker: select k items balancing relevance to q and diversity.
+    """
     chosen = []
     cand = set(range(len(E)))
 
@@ -49,28 +61,70 @@ def mmr(q, E, k=5,lam = 0.7):
 #--------------------------------------------
 # sliding window chunker (split into )
 
-def chunk_text(s,size = 400, overlap=100):
-    out =[]
+def chunk_text(s, size=400, overlap=100):
+    """
+    Split text s into overlapping chunks of given size and overlap.
+    Returns a list of string chunks.
+    """
+    out = []
     i = 0
-
-    while i<len(s):
-        out.append([s[i:i+size]])
-        if i+size >=len(s):
+    while i < len(s):
+        out.append(s[i:i+size])
+        if i+size >= len(s):
             break
         i += size - overlap
     return out
 #---------------------------------------------
 # tokenizer trunk
 def tokenize(text):
+    """
+    Simple whitespace tokenizer.
+    """
     return text.strip().split()
 
 def truncate_tokens(tokens, max_len):
+    """
+    Truncate token list to max_len tokens.
+    """
     return tokens[:max_len]
 #--------------------------------------------
 # retrieval: sparse TF-IDF + cosine 
 from collections import Counter
 
 class TFIDF:
+    # ...existing code...
+
+
+# -------------------
+# Simple test/demo for TFIDF
+
+if __name__ == "__main__":
+    docs = [
+        "The quick brown fox jumps over the lazy dog",
+        "Never jump over the lazy dog quickly",
+        "A fox is quick and brown"
+    ]
+    tfidf = TFIDF()
+    tfidf.fit(docs)
+    vecs = tfidf.transform(docs)
+    print("Feature names:", tfidf.get_feature_names())
+    print("Sparse vector for doc 0:", vecs[0])
+    print("Dense vector for doc 0:", tfidf.sparse_to_dense(vecs[0]))
+    pass
+    def get_feature_names(self):
+        """
+        Return the list of feature names (vocabulary terms) in order of their indices.
+        """
+        return [t for t, i in sorted(self.vocab.items(), key=lambda x: x[1])]
+
+    def sparse_to_dense(self, vec, fill=0.0):
+        """
+        Convert a sparse vector (dict) to a dense list using the vocab size.
+        """
+        dense = [fill] * len(self.vocab)
+        for i, v in vec.items():
+            dense[i] = v
+        return dense
     def fit(self,docs):
 
         df = Counter()
