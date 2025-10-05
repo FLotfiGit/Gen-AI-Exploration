@@ -1,3 +1,11 @@
+# Pretty-print top-k results
+def pretty_print_topk(results, docs):
+    """
+    Print top-k results (index, score, doc snippet).
+    """
+    for idx, score in results:
+        snippet = docs[idx][:60].replace('\n', ' ')
+        print(f"Doc {idx} | Score: {score:.4f} | {snippet}...")
 # Jaccard similarity for token sets
 def jaccard_similarity(a, b):
     """
