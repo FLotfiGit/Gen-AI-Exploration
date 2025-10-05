@@ -88,6 +88,12 @@ def truncate_tokens(tokens, max_len):
 from collections import Counter
 
 class TFIDF:
+    def fit_transform(self, docs):
+        """
+        Fit the model and transform the docs in one step.
+        """
+        self.fit(docs)
+        return self.transform(docs)
     def get_feature_names(self):
         """
         Return the list of feature names (vocabulary terms) in order of their indices.
