@@ -1,3 +1,12 @@
+# Jaccard similarity for token sets
+def jaccard_similarity(a, b):
+    """
+    Compute Jaccard similarity between two token sets/lists.
+    """
+    set_a, set_b = set(a), set(b)
+    inter = set_a & set_b
+    union = set_a | set_b
+    return len(inter) / len(union) if union else 0.0
 import math
 # Cosine similarity, norm 
 def l2_norm(v):
