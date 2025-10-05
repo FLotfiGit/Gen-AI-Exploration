@@ -15,6 +15,8 @@ def jaccard_similarity(a, b):
     inter = set_a & set_b
     union = set_a | set_b
     return len(inter) / len(union) if union else 0.0
+# Coding_LLM_RAG_tries.py: Retrieval, ranking, and utility functions for RAG and LLM experiments.
+
 import math
 # Cosine similarity, norm 
 def l2_norm(v):
@@ -179,13 +181,24 @@ if __name__ == "__main__":
         "Never jump over the lazy dog quickly",
         "A fox is quick and brown"
     ]
+
     tfidf = TFIDF()
     tfidf.fit(docs)
     vecs = tfidf.transform(docs)
     print("Feature names:", tfidf.get_feature_names())
     print("Sparse vector for doc 0:", vecs[0])
     print("Dense vector for doc 0:", tfidf.sparse_to_dense(vecs[0]))
-    pass
+    print("Vocab size (len):", len(tfidf))
+    print("IDF values:", tfidf.get_idf())
+
+    # Demo: Jaccard similarity
+    toks1 = tokenize(docs[0])
+    toks2 = tokenize(docs[1])
+    print("Jaccard similarity between doc 0 and 1:", jaccard_similarity(toks1, toks2))
+
+    # Demo: pretty print topk
+    results = topk_cosine([1.0]*len(vecs[0]), [tfidf.sparse_to_dense(v) for v in vecs], k=2)
+    pretty_print_topk(results, docs)
 
     #-------------------------------------
     # End-to-End Mini RAG Retrieve-then-MMR :
