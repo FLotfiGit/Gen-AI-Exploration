@@ -88,6 +88,11 @@ def truncate_tokens(tokens, max_len):
 from collections import Counter
 
 class TFIDF:
+    def __len__(self):
+        """
+        Return the number of features (vocab size).
+        """
+        return len(self.vocab)
     def fit_transform(self, docs):
         """
         Fit the model and transform the docs in one step.
