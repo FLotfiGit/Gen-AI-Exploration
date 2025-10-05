@@ -88,6 +88,11 @@ def truncate_tokens(tokens, max_len):
 from collections import Counter
 
 class TFIDF:
+    def get_idf(self):
+        """
+        Return the IDF dictionary (term: idf value).
+        """
+        return self.idf.copy()
     def __len__(self):
         """
         Return the number of features (vocab size).
