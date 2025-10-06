@@ -1,3 +1,16 @@
+# Average of a list of dense vectors
+def average_dense_vector(vectors):
+    """
+    Compute the element-wise average of a list of dense vectors.
+    """
+    if not vectors:
+        return []
+    n = len(vectors[0])
+    avg = [0.0] * n
+    for v in vectors:
+        for i, x in enumerate(v):
+            avg[i] += x
+    return [x / len(vectors) for x in avg]
 # Manhattan (L1) distance for dense vectors
 def manhattan_distance(a, b):
     """
