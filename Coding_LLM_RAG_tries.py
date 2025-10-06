@@ -215,6 +215,21 @@ class TFIDF:
 # Simple test/demo for TFIDF
 
 if __name__ == "__main__":
+    # Demo: Manhattan distance
+    print("Manhattan distance between dense doc 0 and 1:", manhattan_distance(tfidf.sparse_to_dense(vecs[0]), tfidf.sparse_to_dense(vecs[1])))
+
+    # Demo: Average dense vector
+    dense_vecs = [tfidf.sparse_to_dense(v) for v in vecs]
+    avg_dense = average_dense_vector(dense_vecs)
+    print("Average dense vector (first 5):", avg_dense[:5])
+
+    # Demo: Average sparse vector
+    avg_sparse = average_sparse_vector(vecs, len(tfidf))
+    print("Average sparse vector (first 5):", avg_sparse[:5])
+
+    # Demo: Pretty print IDF table
+    print("\nIDF Table (sorted):")
+    pretty_print_idf_table(tfidf)
     docs = [
         "The quick brown fox jumps over the lazy dog",
         "Never jump over the lazy dog quickly",
