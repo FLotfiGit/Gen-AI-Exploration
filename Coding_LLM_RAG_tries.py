@@ -1,3 +1,15 @@
+# Average of a list of sparse vectors (dicts) using vocab size
+def average_sparse_vector(sparse_vecs, vocab_size):
+    """
+    Compute the average of a list of sparse vectors (dicts) as a dense vector.
+    """
+    if not sparse_vecs:
+        return [0.0] * vocab_size
+    avg = [0.0] * vocab_size
+    for vec in sparse_vecs:
+        for i, v in vec.items():
+            avg[i] += v
+    return [x / len(sparse_vecs) for x in avg]
 # Average of a list of dense vectors
 def average_dense_vector(vectors):
     """
