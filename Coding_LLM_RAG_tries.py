@@ -1,3 +1,9 @@
+# Manhattan (L1) distance for dense vectors
+def manhattan_distance(a, b):
+    """
+    Compute the Manhattan (L1) distance between two dense vectors.
+    """
+    return sum(abs(x - y) for x, y in zip(a, b))
 # Pretty-print top-k results
 def pretty_print_topk(results, docs):
     """
