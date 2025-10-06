@@ -1,3 +1,11 @@
+# Pretty-print IDF values in a sorted table
+def pretty_print_idf_table(tfidf):
+    """
+    Print the IDF values from a TFIDF object in a sorted table.
+    """
+    idf = tfidf.get_idf()
+    for term, value in sorted(idf.items(), key=lambda x: -x[1]):
+        print(f"{term:15s} {value:.3f}")
 # Average of a list of sparse vectors (dicts) using vocab size
 def average_sparse_vector(sparse_vecs, vocab_size):
     """
