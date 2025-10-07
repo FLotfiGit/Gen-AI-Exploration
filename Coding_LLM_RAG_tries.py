@@ -227,6 +227,15 @@ class TFIDF:
 # Simple test/demo for TFIDF
 
 if __name__ == "__main__":
+    # Demo: Euclidean distance between dense vectors
+    dense0 = [1.0, 2.0, 3.0]
+    dense1 = [2.0, 0.0, 4.0]
+    print("Euclidean distance (dense0, dense1):", euclidean_distance(dense0, dense1))
+
+    # Demo: Intersection size between token sets
+    tokens_a = ["cat", "dog", "mouse"]
+    tokens_b = ["dog", "mouse", "elephant"]
+    print("Intersection size (tokens_a, tokens_b):", intersection_size(tokens_a, tokens_b))
     # Demo: Manhattan distance
     print("Manhattan distance between dense doc 0 and 1:", manhattan_distance(tfidf.sparse_to_dense(vecs[0]), tfidf.sparse_to_dense(vecs[1])))
 
