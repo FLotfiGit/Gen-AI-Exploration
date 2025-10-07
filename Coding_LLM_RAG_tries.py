@@ -1,3 +1,9 @@
+# Intersection size for token sets
+def intersection_size(a, b):
+    """
+    Compute the size of the intersection between two token sets/lists.
+    """
+    return len(set(a) & set(b))
 # Euclidean (L2) distance for dense vectors
 def euclidean_distance(a, b):
     """
