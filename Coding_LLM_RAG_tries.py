@@ -1,3 +1,9 @@
+# Euclidean (L2) distance for dense vectors
+def euclidean_distance(a, b):
+    """
+    Compute the Euclidean (L2) distance between two dense vectors.
+    """
+    return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
 # Pretty-print IDF values in a sorted table
 def pretty_print_idf_table(tfidf):
     """
