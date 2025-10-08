@@ -1,3 +1,9 @@
+# Dot product for dense vectors
+def dot_product(a, b):
+    """
+    Compute the dot product between two dense vectors.
+    """
+    return sum(x * y for x, y in zip(a, b))
 # Intersection size for token sets
 def intersection_size(a, b):
     """
