@@ -1,3 +1,9 @@
+# Union size for token sets
+def union_size(a, b):
+    """
+    Compute the size of the union between two token sets/lists.
+    """
+    return len(set(a) | set(b))
 # Dot product for dense vectors
 def dot_product(a, b):
     """
