@@ -1,3 +1,12 @@
+# Pretty-print Jaccard similarity and set sizes
+def pretty_print_jaccard_results(a, b):
+    """
+    Print Jaccard similarity, intersection size, and union size for two token sets/lists.
+    """
+    jac = jaccard_similarity(a, b)
+    inter = intersection_size(a, b)
+    union = union_size(a, b)
+    print(f"Jaccard: {jac:.4f} | Intersection: {inter} | Union: {union}")
 # Union size for token sets
 def union_size(a, b):
     """
