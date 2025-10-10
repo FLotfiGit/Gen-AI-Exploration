@@ -1,5 +1,5 @@
 # Pretty-print Jaccard similarity and set sizes
-def pretty_print_jaccard_results(a, b):
+def pretty_print_jaccard_results(a: list[str], b: list[str]) -> None:
     """
     Print Jaccard similarity, intersection size, and union size for two token sets/lists.
     """
@@ -8,31 +8,31 @@ def pretty_print_jaccard_results(a, b):
     union = union_size(a, b)
     print(f"Jaccard: {jac:.4f} | Intersection: {inter} | Union: {union}")
 # Union size for token sets
-def union_size(a, b):
+def union_size(a: list[str], b: list[str]) -> int:
     """
     Compute the size of the union between two token sets/lists.
     """
     return len(set(a) | set(b))
 # Dot product for dense vectors
-def dot_product(a, b):
+def dot_product(a: list[float], b: list[float]) -> float:
     """
     Compute the dot product between two dense vectors.
     """
     return sum(x * y for x, y in zip(a, b))
 # Intersection size for token sets
-def intersection_size(a, b):
+def intersection_size(a: list[str], b: list[str]) -> int:
     """
     Compute the size of the intersection between two token sets/lists.
     """
     return len(set(a) & set(b))
 # Euclidean (L2) distance for dense vectors
-def euclidean_distance(a, b):
+def euclidean_distance(a: list[float], b: list[float]) -> float:
     """
     Compute the Euclidean (L2) distance between two dense vectors.
     """
     return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
 # Pretty-print IDF values in a sorted table
-def pretty_print_idf_table(tfidf):
+def pretty_print_idf_table(tfidf: 'TFIDF') -> None:
     """
     Print the IDF values from a TFIDF object in a sorted table.
     """
@@ -40,7 +40,7 @@ def pretty_print_idf_table(tfidf):
     for term, value in sorted(idf.items(), key=lambda x: -x[1]):
         print(f"{term:15s} {value:.3f}")
 # Average of a list of sparse vectors (dicts) using vocab size
-def average_sparse_vector(sparse_vecs, vocab_size):
+def average_sparse_vector(sparse_vecs: list[dict[int, float]], vocab_size: int) -> list[float]:
     """
     Compute the average of a list of sparse vectors (dicts) as a dense vector.
     """
@@ -52,7 +52,7 @@ def average_sparse_vector(sparse_vecs, vocab_size):
             avg[i] += v
     return [x / len(sparse_vecs) for x in avg]
 # Average of a list of dense vectors
-def average_dense_vector(vectors):
+def average_dense_vector(vectors: list[list[float]]) -> list[float]:
     """
     Compute the element-wise average of a list of dense vectors.
     """
