@@ -1,3 +1,22 @@
+# =============================================================
+# Coding_LLM_RAG_tries.py
+# -------------------------------------------------------------
+# Retrieval, ranking, and utility functions for RAG and LLM experiments.
+#
+# This module provides:
+#   - Dense and sparse similarity metrics (cosine, Jaccard, L1/L2, dot product)
+#   - TFIDF class for sparse retrieval
+#   - Utility functions for chunking, tokenization, and vector operations
+#   - Pretty-print and logging helpers for results
+#   - Professional error handling and type hints
+#
+# Usage:
+#   Import functions/classes as needed for retrieval, reranking, and analysis tasks.
+# =============================================================
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 # Custom exception for TFIDF errors
 class TFIDFError(Exception):
     """
@@ -292,20 +311,22 @@ if __name__ == "__main__":
     tfidf = TFIDF()
     tfidf.fit(docs)
     vecs = tfidf.transform(docs)
-    print("Feature names:", tfidf.get_feature_names())
-    print("Sparse vector for doc 0:", vecs[0])
-    print("Dense vector for doc 0:", tfidf.sparse_to_dense(vecs[0]))
-    print("Vocab size (len):", len(tfidf))
-    print("IDF values:", tfidf.get_idf())
+    logger.info(f"Feature names: {tfidf.get_feature_names()}")
+    logger.info(f"Sparse vector for doc 0: {vecs[0]}")
+    logger.info(f"Dense vector for doc 0: {tfidf.sparse_to_dense(vecs[0])}")
+    logger.info(f"Vocab size (len): {len(tfidf)}")
+    logger.info(f"IDF values: {tfidf.get_idf()}")
 
     # Demo: Jaccard similarity
     toks1 = tokenize(docs[0])
     toks2 = tokenize(docs[1])
-    print("Jaccard similarity between doc 0 and 1:", jaccard_similarity(toks1, toks2))
+    logger.info(f"Jaccard similarity between doc 0 and 1: {jaccard_similarity(toks1, toks2)}")
 
     # Demo: pretty print topk
     results = topk_cosine([1.0]*len(vecs[0]), [tfidf.sparse_to_dense(v) for v in vecs], k=2)
-    pretty_print_topk(results, docs)
+    for idx, score in results:
+        snippet = docs[idx][:60].replace('\n', ' ')
+        logger.info(f"Doc {idx} | Score: {score:.4f} | {snippet}...")
 
     #-------------------------------------
     # End-to-End Mini RAG Retrieve-then-MMR :
