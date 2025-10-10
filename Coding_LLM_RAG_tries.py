@@ -1,3 +1,9 @@
+# Custom exception for TFIDF errors
+class TFIDFError(Exception):
+    """
+    Exception raised for errors in the TFIDF class.
+    """
+    pass
 # Pretty-print Jaccard similarity and set sizes
 def pretty_print_jaccard_results(a: list[str], b: list[str]) -> None:
     """
@@ -198,7 +204,10 @@ class TFIDF:
     def get_feature_names(self):
         """
         Return the list of feature names (vocabulary terms) in order of their indices.
+        Raises TFIDFError if vocab is missing.
         """
+        if not hasattr(self, 'vocab') or not self.vocab:
+            raise TFIDFError("TFIDF vocabulary is not fitted.")
         return [t for t, i in sorted(self.vocab.items(), key=lambda x: x[1])]
 
     def sparse_to_dense(self, vec, fill=0.0):
@@ -220,6 +229,8 @@ class TFIDF:
         self.idf = {t: math.log((1+N)/(1+df[t]))+1 for t in self.vocab}
 
     def transform(self,docs):
+        if not hasattr(self, 'vocab') or not self.vocab:
+            raise TFIDFError("TFIDF vocabulary is not fitted.")
         rows = []
         for d in docs:
             toks = d.lower().split()
