@@ -19,7 +19,7 @@ import argparse
 import os
 import random
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 import numpy as np
 import torch
@@ -124,10 +124,19 @@ class TokenizeFn:
 # -----------------------------
 
 def compute_metrics(eval_pred):
+    """Compute accuracy and binary F1 without external dependencies."""
     logits, labels = eval_pred
     preds = np.argmax(logits, axis=-1)
-    acc = (preds == labels).mean().item() if hasattr((preds == labels), 'mean') else float(np.mean(preds == labels))
-    return {"accuracy": acc}
+    # Accuracy
+    acc = float(np.mean(preds == labels))
+    # Binary precision/recall/F1 (positive class = 1)
+    tp = int(np.sum((preds == 1) & (labels == 1)))
+    fp = int(np.sum((preds == 1) & (labels == 0)))
+    fn = int(np.sum((preds == 0) & (labels == 1)))
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+    return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
 
 
 # -----------------------------
