@@ -161,6 +161,12 @@ def main():
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--warmup_ratio", type=float, default=0.0)
     parser.add_argument("--gradient_accumulation_steps", type=int, default=1)
+    parser.add_argument("--fp16", action="store_true")
+    parser.add_argument("--bf16", action="store_true")
+    parser.add_argument("--gradient_checkpointing", action="store_true")
+    parser.add_argument("--save_total_limit", type=int, default=2)
+    parser.add_argument("--logging_dir", type=str, default=None)
+    parser.add_argument("--report_to", type=str, default="", help="Comma-separated reporters, e.g., wandb,tensorboard; blank disables.")
     parser.add_argument("--r", type=int, default=8, help="LoRA rank")
     parser.add_argument("--lora_alpha", type=int, default=16)
     parser.add_argument("--lora_dropout", type=float, default=0.05)
@@ -232,6 +238,7 @@ def main():
     model.print_trainable_parameters()
 
     # Training arguments
+    report_to = [] if not args.report_to else [x.strip() for x in args.report_to.split(',') if x.strip()]
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         per_device_train_batch_size=args.batch_size,
@@ -244,10 +251,15 @@ def main():
         evaluation_strategy="epoch",
         save_strategy="epoch",
         logging_steps=50,
+        fp16=args.fp16,
+        bf16=args.bf16,
+        gradient_checkpointing=args.gradient_checkpointing,
+        save_total_limit=args.save_total_limit,
+        logging_dir=args.logging_dir,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
         greater_is_better=True,
-        report_to=[],  # disable wandb etc.
+        report_to=report_to,  # disable or configure
     )
 
     # Trainer
