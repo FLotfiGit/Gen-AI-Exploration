@@ -150,6 +150,9 @@ def main():
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--lr", type=float, default=5e-4)
+    parser.add_argument("--weight_decay", type=float, default=0.0)
+    parser.add_argument("--warmup_ratio", type=float, default=0.0)
+    parser.add_argument("--gradient_accumulation_steps", type=int, default=1)
     parser.add_argument("--r", type=int, default=8, help="LoRA rank")
     parser.add_argument("--lora_alpha", type=int, default=16)
     parser.add_argument("--lora_dropout", type=float, default=0.05)
@@ -203,6 +206,9 @@ def main():
         per_device_eval_batch_size=args.batch_size,
         num_train_epochs=args.epochs,
         learning_rate=args.lr,
+        weight_decay=args.weight_decay,
+        warmup_ratio=args.warmup_ratio,
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
         evaluation_strategy="epoch",
         save_strategy="epoch",
         logging_steps=50,
