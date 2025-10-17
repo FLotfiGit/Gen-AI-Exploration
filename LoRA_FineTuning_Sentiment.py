@@ -30,8 +30,16 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+from transformers import EarlyStoppingCallback
 from datasets import load_dataset, Dataset, DatasetDict
 from peft import LoraConfig, get_peft_model
+try:
+    # Optional, used only when quantized loading is requested
+    from peft import prepare_model_for_kbit_training  # type: ignore
+    _HAS_PREPARE_KBIT = True
+except Exception:
+    prepare_model_for_kbit_training = None  # type: ignore
+    _HAS_PREPARE_KBIT = False
 
 
 # -----------------------------
@@ -160,6 +168,12 @@ def main():
     parser.add_argument("--max_train_samples", type=int, default=1000)
     parser.add_argument("--max_eval_samples", type=int, default=200)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--merge_adapter_and_save", action="store_true", help="Merge LoRA adapter into base weights and save full model")
+    parser.add_argument("--save_eval_csv", action="store_true", help="Save evaluation predictions and labels to CSV")
+    parser.add_argument("--load_in_8bit", action="store_true", help="Load base model in 8-bit with bitsandbytes")
+    parser.add_argument("--load_in_4bit", action="store_true", help="Load base model in 4-bit with bitsandbytes")
+    parser.add_argument("--early_stopping", action="store_true", help="Enable early stopping")
+    parser.add_argument("--early_stopping_patience", type=int, default=2)
     args = parser.parse_args()
 
     set_seed(args.seed)
@@ -179,7 +193,19 @@ def main():
 
     # Tokenizer and model
     tokenizer = AutoTokenizer.from_pretrained(args.model_name, use_fast=True)
-    model = AutoModelForSequenceClassification.from_pretrained(args.model_name, num_labels=2)
+    model_load_kwargs = {}
+    if args.load_in_4bit or args.load_in_8bit:
+        # Prefer 4-bit when both are set
+        if args.load_in_4bit:
+            model_load_kwargs["load_in_4bit"] = True
+        elif args.load_in_8bit:
+            model_load_kwargs["load_in_8bit"] = True
+        model_load_kwargs["device_map"] = "auto"
+    model = AutoModelForSequenceClassification.from_pretrained(
+        args.model_name,
+        num_labels=2,
+        **model_load_kwargs,
+    )
 
     # Prepare dataset
     tok_fn = TokenizeFn(tokenizer=tokenizer, max_length=args.max_length)
@@ -188,6 +214,12 @@ def main():
 
     # Attach LoRA
     targets = detect_lora_targets(model)
+    # If quantized loading requested, prepare model if available
+    if (args.load_in_4bit or args.load_in_8bit) and _HAS_PREPARE_KBIT and callable(prepare_model_for_kbit_training):
+        model = prepare_model_for_kbit_training(model)
+    elif (args.load_in_4bit or args.load_in_8bit) and not _HAS_PREPARE_KBIT:
+        print("Warning: prepare_model_for_kbit_training not available; proceeding without special prep.")
+
     lora_cfg = LoraConfig(
         r=args.r,
         lora_alpha=args.lora_alpha,
@@ -219,6 +251,10 @@ def main():
     )
 
     # Trainer
+    callbacks = []
+    if args.early_stopping:
+        callbacks.append(EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience))
+
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -227,6 +263,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
+        callbacks=callbacks,
     )
 
     # Train
@@ -236,9 +273,43 @@ def main():
     metrics = trainer.evaluate()
     print("Eval metrics:", metrics)
 
+    # Optionally save predictions to CSV
+    if args.save_eval_csv:
+        import csv
+        eval_dl = trainer.get_eval_dataloader()
+        all_logits, all_labels = [], []
+        for batch in eval_dl:
+            with torch.no_grad():
+                logits = trainer.model(**{k: v.to(trainer.model.device) for k, v in batch.items() if k in ("input_ids", "attention_mask", "token_type_ids")}).logits
+            all_logits.append(logits.cpu().numpy())
+            all_labels.append(batch["labels"].cpu().numpy())
+        logits_np = np.concatenate(all_logits, axis=0)
+        labels_np = np.concatenate(all_labels, axis=0)
+        preds_np = logits_np.argmax(axis=-1)
+        os.makedirs(args.output_dir, exist_ok=True)
+        csv_path = os.path.join(args.output_dir, "eval_predictions.csv")
+        with open(csv_path, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["label", "pred0", "pred1", "pred_class"])
+            for y, logit, pc in zip(labels_np.tolist(), logits_np.tolist(), preds_np.tolist()):
+                w.writerow([int(y), float(logit[0]), float(logit[1]), int(pc)])
+        print(f"Saved eval predictions to {csv_path}")
+
     # Save LoRA adapter
     model.save_pretrained(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
+
+    # Optionally merge adapter into base model and save full model
+    if args.merge_adapter_and_save:
+        try:
+            merged = model.merge_and_unload()
+            merged_dir = os.path.join(args.output_dir, "merged_model")
+            os.makedirs(merged_dir, exist_ok=True)
+            merged.save_pretrained(merged_dir)
+            tokenizer.save_pretrained(merged_dir)
+            print(f"Merged full model saved to {merged_dir}")
+        except Exception as e:
+            print(f"Merging adapter failed: {e}")
 
     # Inference demo
     demo_texts = [
