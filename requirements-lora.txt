@@ -1,0 +1,8 @@
+transformers>=4.40.0
+datasets>=2.18.0
+peft>=0.11.0
+accelerate>=0.31.0
+safetensors>=0.4.2
+# Optional for 8-bit/4-bit
+bitsandbytes>=0.43.0; platform_system != "Darwin" or platform_machine == "x86_64"
+# Note: bitsandbytes support on Apple Silicon is limited; skip where unavailable.

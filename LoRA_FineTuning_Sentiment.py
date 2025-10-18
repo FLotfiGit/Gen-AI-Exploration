@@ -275,7 +275,11 @@ def main():
         metric_for_best_model="accuracy",
         greater_is_better=True,
         report_to=report_to,  # disable or configure
+        seed=args.seed,
     )
+
+    # Dataset stats logging
+    print(f"Train size: {len(ds_tokenized['train'])} | Eval({eval_name}) size: {len(ds_tokenized[eval_name])}")
 
     # Trainer
     callbacks = []
