@@ -90,7 +90,8 @@ def make_synthetic_sentiment(n_train: int = 200, n_eval: int = 50) -> DatasetDic
 
     return DatasetDict({
         "train": build_split(n_train),
-        "validation": build_split(n_eval)
+        "validation": build_split(n_eval),
+        "test": build_split(n_eval),
     })
 
 
@@ -178,6 +179,8 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--merge_adapter_and_save", action="store_true", help="Merge LoRA adapter into base weights and save full model")
     parser.add_argument("--save_eval_csv", action="store_true", help="Save evaluation predictions and labels to CSV")
+    parser.add_argument("--print_confusion_matrix", action="store_true", help="Print 2x2 confusion matrix after eval")
+    parser.add_argument("--eval_on_test", action="store_true", help="Evaluate on test split if available")
     parser.add_argument("--load_in_8bit", action="store_true", help="Load base model in 8-bit with bitsandbytes")
     parser.add_argument("--load_in_4bit", action="store_true", help="Load base model in 4-bit with bitsandbytes")
     parser.add_argument("--early_stopping", action="store_true", help="Enable early stopping")
@@ -279,11 +282,15 @@ def main():
     if args.early_stopping:
         callbacks.append(EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience))
 
+    eval_name = "validation"
+    if args.eval_on_test and "test" in ds_tokenized:
+        eval_name = "test"
+
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=ds_tokenized["train"],
-        eval_dataset=ds_tokenized["validation"],
+        eval_dataset=ds_tokenized[eval_name],
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
@@ -297,8 +304,8 @@ def main():
     metrics = trainer.evaluate()
     print("Eval metrics:", metrics)
 
-    # Optionally save predictions to CSV
-    if args.save_eval_csv:
+    # Optionally save predictions to CSV and/or print confusion matrix
+    if args.save_eval_csv or args.print_confusion_matrix:
         import csv
         eval_dl = trainer.get_eval_dataloader()
         all_logits, all_labels = [], []
@@ -310,14 +317,21 @@ def main():
         logits_np = np.concatenate(all_logits, axis=0)
         labels_np = np.concatenate(all_labels, axis=0)
         preds_np = logits_np.argmax(axis=-1)
-        os.makedirs(args.output_dir, exist_ok=True)
-        csv_path = os.path.join(args.output_dir, "eval_predictions.csv")
-        with open(csv_path, "w", newline="") as f:
-            w = csv.writer(f)
-            w.writerow(["label", "pred0", "pred1", "pred_class"])
-            for y, logit, pc in zip(labels_np.tolist(), logits_np.tolist(), preds_np.tolist()):
-                w.writerow([int(y), float(logit[0]), float(logit[1]), int(pc)])
-        print(f"Saved eval predictions to {csv_path}")
+        if args.save_eval_csv:
+            os.makedirs(args.output_dir, exist_ok=True)
+            csv_path = os.path.join(args.output_dir, "eval_predictions.csv")
+            with open(csv_path, "w", newline="") as f:
+                w = csv.writer(f)
+                w.writerow(["label", "pred0", "pred1", "pred_class"])
+                for y, logit, pc in zip(labels_np.tolist(), logits_np.tolist(), preds_np.tolist()):
+                    w.writerow([int(y), float(logit[0]), float(logit[1]), int(pc)])
+            print(f"Saved eval predictions to {csv_path}")
+        if args.print_confusion_matrix:
+            # rows = true label, cols = predicted label
+            cm = np.zeros((2, 2), dtype=int)
+            for y, p in zip(labels_np.tolist(), preds_np.tolist()):
+                cm[int(y)][int(p)] += 1
+            print("Confusion matrix:\n", cm)
 
     # Save LoRA adapter
     model.save_pretrained(args.output_dir)
