@@ -170,6 +170,7 @@ def main():
     parser.add_argument("--r", type=int, default=8, help="LoRA rank")
     parser.add_argument("--lora_alpha", type=int, default=16)
     parser.add_argument("--lora_dropout", type=float, default=0.05)
+    parser.add_argument("--target_modules", type=str, default="", help="Comma-separated LoRA target modules to override auto-detection")
     parser.add_argument("--max_length", type=int, default=128)
     parser.add_argument("--max_train_samples", type=int, default=1000)
     parser.add_argument("--max_eval_samples", type=int, default=200)
@@ -220,6 +221,15 @@ def main():
 
     # Attach LoRA
     targets = detect_lora_targets(model)
+    parser_targets = None
+    # Defer parser access until args exists above; reusing args here
+    # Allow overriding target modules from CLI (comma-separated)
+    if hasattr(args, 'target_modules'):
+        parser_targets = args.target_modules
+    else:
+        parser_targets = None
+    if parser_targets:
+        targets = [t.strip() for t in parser_targets.split(',') if t.strip()]
     # If quantized loading requested, prepare model if available
     if (args.load_in_4bit or args.load_in_8bit) and _HAS_PREPARE_KBIT and callable(prepare_model_for_kbit_training):
         model = prepare_model_for_kbit_training(model)
