@@ -180,6 +180,9 @@ def main():
     parser.add_argument("--save_total_limit", type=int, default=2)
     parser.add_argument("--logging_dir", type=str, default=None)
     parser.add_argument("--report_to", type=str, default="", help="Comma-separated reporters, e.g., wandb,tensorboard; blank disables.")
+    parser.add_argument("--eval_steps", type=int, default=0, help="Evaluate every N steps (0=use epoch strategy)")
+    parser.add_argument("--save_steps", type=int, default=0, help="Save every N steps (0=use epoch strategy)")
+    parser.add_argument("--logging_steps_cli", type=int, default=50, help="Log every N steps (overrides default 50)")
     parser.add_argument("--r", type=int, default=8, help="LoRA rank")
     parser.add_argument("--lora_alpha", type=int, default=16)
     parser.add_argument("--lora_dropout", type=float, default=0.05)
@@ -266,6 +269,10 @@ def main():
 
     # Training arguments
     report_to = [] if not args.report_to else [x.strip() for x in args.report_to.split(',') if x.strip()]
+    evaluation_strategy = "steps" if args.eval_steps and args.eval_steps > 0 else "epoch"
+    save_strategy = "steps" if args.save_steps and args.save_steps > 0 else "epoch"
+    logging_steps = args.logging_steps_cli if args.logging_steps_cli > 0 else 50
+
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         per_device_train_batch_size=args.batch_size,
@@ -276,9 +283,11 @@ def main():
         weight_decay=args.weight_decay,
         warmup_ratio=args.warmup_ratio,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        logging_steps=50,
+    evaluation_strategy=evaluation_strategy,
+    save_strategy=save_strategy,
+    eval_steps=(args.eval_steps if evaluation_strategy == "steps" else None),
+    save_steps=(args.save_steps if save_strategy == "steps" else None),
+    logging_steps=logging_steps,
         fp16=args.fp16,
         bf16=args.bf16,
         gradient_checkpointing=args.gradient_checkpointing,
