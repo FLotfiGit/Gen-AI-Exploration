@@ -116,6 +116,17 @@ def detect_lora_targets(model: torch.nn.Module) -> List[str]:
 
 
 # -----------------------------
+# Utilities
+# -----------------------------
+
+def count_parameters(model: torch.nn.Module) -> tuple[int, int]:
+    """Return (total_params, trainable_params)."""
+    total = sum(p.numel() for p in model.parameters())
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    return total, trainable
+
+
+# -----------------------------
 # Tokenization
 # -----------------------------
 
@@ -250,6 +261,8 @@ def main():
     )
     model = get_peft_model(model, lora_cfg)
     model.print_trainable_parameters()
+    total_params, trainable_params = count_parameters(model)
+    print(f"Parameters | total: {total_params:,} | trainable: {trainable_params:,}")
 
     # Training arguments
     report_to = [] if not args.report_to else [x.strip() for x in args.report_to.split(',') if x.strip()]
