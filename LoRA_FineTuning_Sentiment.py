@@ -34,6 +34,11 @@ from transformers import EarlyStoppingCallback
 from datasets import load_dataset, Dataset, DatasetDict
 from peft import LoraConfig, get_peft_model
 try:
+    import matplotlib.pyplot as plt  # optional
+    _HAS_MPL = True
+except Exception:
+    _HAS_MPL = False
+try:
     # Optional, used only when quantized loading is requested
     from peft import prepare_model_for_kbit_training  # type: ignore
     _HAS_PREPARE_KBIT = True
@@ -174,6 +179,7 @@ def main():
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--warmup_ratio", type=float, default=0.0)
     parser.add_argument("--gradient_accumulation_steps", type=int, default=1)
+    parser.add_argument("--max_grad_norm", type=float, default=1.0)
     parser.add_argument("--fp16", action="store_true")
     parser.add_argument("--bf16", action="store_true")
     parser.add_argument("--gradient_checkpointing", action="store_true")
@@ -191,17 +197,39 @@ def main():
     parser.add_argument("--max_train_samples", type=int, default=1000)
     parser.add_argument("--max_eval_samples", type=int, default=200)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--predict_only", action="store_true", help="Load model from output_dir and run inference only")
+    parser.add_argument("--predict_texts", type=str, default="", help="Prediction texts separated by '||' in predict-only mode")
     parser.add_argument("--merge_adapter_and_save", action="store_true", help="Merge LoRA adapter into base weights and save full model")
     parser.add_argument("--save_eval_csv", action="store_true", help="Save evaluation predictions and labels to CSV")
     parser.add_argument("--print_confusion_matrix", action="store_true", help="Print 2x2 confusion matrix after eval")
+    parser.add_argument("--save_confusion_png", action="store_true", help="Save confusion matrix as PNG (if matplotlib is available)")
     parser.add_argument("--eval_on_test", action="store_true", help="Evaluate on test split if available")
     parser.add_argument("--load_in_8bit", action="store_true", help="Load base model in 8-bit with bitsandbytes")
     parser.add_argument("--load_in_4bit", action="store_true", help="Load base model in 4-bit with bitsandbytes")
     parser.add_argument("--early_stopping", action="store_true", help="Enable early stopping")
     parser.add_argument("--early_stopping_patience", type=int, default=2)
+    parser.add_argument("--best_metric", type=str, default="accuracy", choices=["accuracy", "f1"], help="Metric for best model selection and early stopping")
     args = parser.parse_args()
 
     set_seed(args.seed)
+
+    # Predict-only mode: load from output_dir and run demo, then exit
+    if hasattr(args, 'predict_only') and args.predict_only:
+        tokenizer = AutoTokenizer.from_pretrained(args.output_dir)
+        model = AutoModelForSequenceClassification.from_pretrained(args.output_dir)
+        demo_texts = args.predict_texts.split("||") if getattr(args, 'predict_texts', '') else [
+            "I absolutely loved this!",
+            "This was the worst thing ever.",
+            "Not great, but not terrible either.",
+        ]
+        enc = tokenizer(demo_texts, return_tensors="pt", padding=True, truncation=True)
+        with torch.no_grad():
+            logits = model(**enc).logits
+            probs = torch.softmax(logits, dim=-1).cpu().numpy()
+            preds = probs.argmax(axis=-1)
+        for t, p, pr in zip(demo_texts, preds, probs):
+            print(f"{t!r} -> pred={int(p)} prob={pr}")
+        return
 
     # Load dataset (with fallback)
     try:
@@ -288,13 +316,14 @@ def main():
     eval_steps=(args.eval_steps if evaluation_strategy == "steps" else None),
     save_steps=(args.save_steps if save_strategy == "steps" else None),
     logging_steps=logging_steps,
+    max_grad_norm=args.max_grad_norm,
         fp16=args.fp16,
         bf16=args.bf16,
         gradient_checkpointing=args.gradient_checkpointing,
         save_total_limit=args.save_total_limit,
         logging_dir=args.logging_dir,
         load_best_model_at_end=True,
-        metric_for_best_model="accuracy",
+        metric_for_best_model=args.best_metric,
         greater_is_better=True,
         report_to=report_to,  # disable or configure
         seed=args.seed,
@@ -358,10 +387,40 @@ def main():
             for y, p in zip(labels_np.tolist(), preds_np.tolist()):
                 cm[int(y)][int(p)] += 1
             print("Confusion matrix:\n", cm)
+            # Optional: save confusion matrix image if matplotlib is available
+            if _HAS_MPL and getattr(args, 'save_confusion_png', False):
+                fig, ax = plt.subplots(figsize=(3, 3))
+                ax.imshow(cm, cmap="Blues")
+                ax.set_title("Confusion Matrix")
+                ax.set_xlabel("Predicted")
+                ax.set_ylabel("True")
+                for (i, j), v in np.ndenumerate(cm):
+                    ax.text(j, i, str(v), ha='center', va='center', color='black')
+                os.makedirs(args.output_dir, exist_ok=True)
+                out_png = os.path.join(args.output_dir, "confusion_matrix.png")
+                plt.tight_layout()
+                plt.savefig(out_png)
+                plt.close(fig)
+                print(f"Saved confusion matrix image to {out_png}")
 
     # Save LoRA adapter
     model.save_pretrained(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
+
+    # Write a simple model card
+    try:
+        card = [
+            "# LoRA Sentiment Model\n",
+            "\n",
+            f"Model name: {args.model_name}\n",
+            f"Best metric: {args.best_metric}\n",
+            f"Eval metrics: {metrics}\n",
+            f"Args: {vars(args)}\n",
+        ]
+        with open(os.path.join(args.output_dir, "README.md"), "w") as f:
+            f.writelines(card)
+    except Exception as e:
+        print(f"Warning: failed to write model card: {e}")
 
     # Optionally merge adapter into base model and save full model
     if args.merge_adapter_and_save:
