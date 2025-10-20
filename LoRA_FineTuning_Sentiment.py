@@ -18,6 +18,8 @@ Notes:
 import argparse
 import os
 import random
+import time
+import json
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
 
@@ -209,7 +211,20 @@ def main():
     parser.add_argument("--early_stopping", action="store_true", help="Enable early stopping")
     parser.add_argument("--early_stopping_patience", type=int, default=2)
     parser.add_argument("--best_metric", type=str, default="accuracy", choices=["accuracy", "f1"], help="Metric for best model selection and early stopping")
+    parser.add_argument("--config", type=str, default="", help="Path to JSON config to load (overrides CLI)")
+    parser.add_argument("--save_config", action="store_true", help="Save used args to output_dir/config.json")
+
     args = parser.parse_args()
+    # Config overrides CLI if provided
+    if args.config:
+        try:
+            with open(args.config, "r") as f:
+                cfg = json.load(f)
+            for k, v in cfg.items():
+                if hasattr(args, k):
+                    setattr(args, k, v)
+        except Exception as e:
+            print(f"Warning: failed to load config {args.config}: {e}")
 
     set_seed(args.seed)
 
@@ -352,12 +367,23 @@ def main():
         callbacks=callbacks,
     )
 
-    # Train
+    # Train with timing
+    t0 = time.time()
     trainer.train()
+    train_seconds = time.time() - t0
 
-    # Evaluate
+    # Evaluate with timing
+    t1 = time.time()
     metrics = trainer.evaluate()
+    eval_seconds = time.time() - t1
     print("Eval metrics:", metrics)
+    # Save durations
+    try:
+        os.makedirs(args.output_dir, exist_ok=True)
+        with open(os.path.join(args.output_dir, "durations.json"), "w") as f:
+            json.dump({"train_seconds": train_seconds, "eval_seconds": eval_seconds}, f, indent=2)
+    except Exception as e:
+        print(f"Warning: failed to write durations.json: {e}")
 
     # Optionally save predictions to CSV and/or print confusion matrix
     if args.save_eval_csv or args.print_confusion_matrix:
@@ -406,6 +432,14 @@ def main():
     # Save LoRA adapter
     model.save_pretrained(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
+
+    # Optionally save used args config
+    if args.save_config:
+        try:
+            with open(os.path.join(args.output_dir, "config.json"), "w") as f:
+                json.dump(vars(args), f, indent=2)
+        except Exception as e:
+            print(f"Warning: failed to save config.json: {e}")
 
     # Write a simple model card
     try:
