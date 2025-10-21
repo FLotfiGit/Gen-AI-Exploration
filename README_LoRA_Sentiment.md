@@ -31,6 +31,33 @@ python LoRA_FineTuning_Sentiment.py \
 - Evaluation/Logging
   - `--save_eval_csv`, `--eval_on_test`, `--print_confusion_matrix`
   - `--logging_dir`, `--report_to`, `--save_total_limit`
+  - `--eval_steps`, `--save_steps`, `--logging_steps_cli` (switches to step-based strategies)
+
+## Config files (save/load)
+
+- Load a JSON config (overrides CLI):
+
+```bash
+python LoRA_FineTuning_Sentiment.py --config lora_config_example.json
+```
+
+- Save the used args to `output_dir/config.json`:
+
+```bash
+python LoRA_FineTuning_Sentiment.py --save_config
+```
+
+Notes: When `--config` is provided, matching keys overwrite the parsed CLI values. This makes runs reproducible.
+
+## Predict-only mode
+
+Run inference from a previously saved `output_dir` (no training):
+
+```bash
+python LoRA_FineTuning_Sentiment.py \
+  --predict_only --output_dir ./lora_sentiment_out \
+  --predict_texts "Amazing product!||This was awful."
+```
 
 ## Example: early stopping and merged export
 
