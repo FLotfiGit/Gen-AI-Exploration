@@ -213,6 +213,8 @@ def main():
     parser.add_argument("--best_metric", type=str, default="accuracy", choices=["accuracy", "f1"], help="Metric for best model selection and early stopping")
     parser.add_argument("--config", type=str, default="", help="Path to JSON config to load (overrides CLI)")
     parser.add_argument("--save_config", action="store_true", help="Save used args to output_dir/config.json")
+    parser.add_argument("--print_config", action="store_true", help="Print effective config and exit")
+    parser.add_argument("--dry_run", action="store_true", help="Load dataset/tokenizer, show sizes, then exit (no training)")
 
     args = parser.parse_args()
     # Config overrides CLI if provided
@@ -227,6 +229,11 @@ def main():
             print(f"Warning: failed to load config {args.config}: {e}")
 
     set_seed(args.seed)
+
+    # Print effective config and exit, if requested
+    if args.print_config:
+        print(json.dumps(vars(args), indent=2))
+        return
 
     # Predict-only mode: load from output_dir and run demo, then exit
     if hasattr(args, 'predict_only') and args.predict_only:
@@ -279,6 +286,12 @@ def main():
     tok_fn = TokenizeFn(tokenizer=tokenizer, max_length=args.max_length)
     ds_tokenized = ds.map(tok_fn, batched=True)
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+
+    # Dry-run: show dataset sizes and exit (skip model wrap/training)
+    if args.dry_run:
+        eval_name_preview = "test" if (args.eval_on_test and "test" in ds_tokenized) else "validation"
+        print(f"[DRY RUN] Train size: {len(ds_tokenized['train'])} | Eval({eval_name_preview}) size: {len(ds_tokenized[eval_name_preview])}")
+        return
 
     # Attach LoRA
     targets = detect_lora_targets(model)
@@ -344,6 +357,11 @@ def main():
         seed=args.seed,
     )
 
+    # eval split selection
+    eval_name = "validation"
+    if args.eval_on_test and "test" in ds_tokenized:
+        eval_name = "test"
+
     # Dataset stats logging
     print(f"Train size: {len(ds_tokenized['train'])} | Eval({eval_name}) size: {len(ds_tokenized[eval_name])}")
 
@@ -351,10 +369,6 @@ def main():
     callbacks = []
     if args.early_stopping:
         callbacks.append(EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience))
-
-    eval_name = "validation"
-    if args.eval_on_test and "test" in ds_tokenized:
-        eval_name = "test"
 
     trainer = Trainer(
         model=model,
@@ -380,8 +394,16 @@ def main():
     # Save durations
     try:
         os.makedirs(args.output_dir, exist_ok=True)
+        # Approximate throughput (samples/sec)
+        approx_train_samples = len(ds_tokenized["train"]) * (args.epochs if args.max_steps <= 0 else 1)
+        approx_throughput = (approx_train_samples / train_seconds) if train_seconds > 0 else None
         with open(os.path.join(args.output_dir, "durations.json"), "w") as f:
-            json.dump({"train_seconds": train_seconds, "eval_seconds": eval_seconds}, f, indent=2)
+            json.dump({
+                "train_seconds": train_seconds,
+                "eval_seconds": eval_seconds,
+                "approx_train_samples": approx_train_samples,
+                "approx_samples_per_sec": approx_throughput
+            }, f, indent=2)
     except Exception as e:
         print(f"Warning: failed to write durations.json: {e}")
 

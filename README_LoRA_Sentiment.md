@@ -32,6 +32,7 @@ python LoRA_FineTuning_Sentiment.py \
   - `--save_eval_csv`, `--eval_on_test`, `--print_confusion_matrix`
   - `--logging_dir`, `--report_to`, `--save_total_limit`
   - `--eval_steps`, `--save_steps`, `--logging_steps_cli` (switches to step-based strategies)
+  - `--print_config` (prints effective config and exits), `--dry_run` (show sizes; no training)
 
 ## Config files (save/load)
 
@@ -48,6 +49,8 @@ python LoRA_FineTuning_Sentiment.py --save_config
 ```
 
 Notes: When `--config` is provided, matching keys overwrite the parsed CLI values. This makes runs reproducible.
+
+`durations.json` also includes an approximate `approx_samples_per_sec` throughput metric.
 
 ## Predict-only mode
 
