@@ -11,31 +11,57 @@ class TFIDF:
         df = Counter()
 
         for doc in docs:
-            tokens = doc.lower.split()
+            tokens = doc.lower().split()
             for t in tokens:
                 df[t] +=1
-        self.vocab = {t:i for t,i in enumerate(sorted(tokens))}
+        # Build vocab from all terms seen across docs
+        self.vocab = {t:i for i, t in enumerate(sorted(df.keys()))}
         N = len(docs)
-        idf = {math.log((1+N)/(1+df[t])+1) for t in tokens}
+        # Smooth IDF
+        self.idf = {t: math.log((1+N)/(1+df[t])) + 1.0 for t in self.vocab}
     
     def transform(self, docs):
-        rows ={}
+        rows = []
 
         for doc in docs:
-            tokens = doc.lower.split()
+            tokens = doc.lower().split()
             tf = Counter(tokens)
             
-            vec ={}
+            vec = {}
             for t, cnt in tf.items():
-                i = self.vocab[t]
-                vec[i] = (cnt/len(tokens)) * self.idf[t]
-                rows.append(vec)
+                if t in self.vocab:
+                    i = self.vocab[t]
+                    vec[i] = (cnt/len(tokens)) * self.idf[t]
+            rows.append(vec)
         
         return rows
     
     def fit_transform(self,docs):
         self.fit(docs)
         return self.transform(docs)
+
+    def get_feature_names(self):
+        """Return feature terms ordered by their indices."""
+        return [t for t, i in sorted(self.vocab.items(), key=lambda x: x[1])]
+
+    def sparse_to_dense(self, vec, fill=0.0):
+        """Convert a sparse vector (dict index->value) to a dense list."""
+        dense = [fill] * len(self.vocab)
+        for i, v in vec.items():
+            dense[i] = v
+        return dense
+
+    def cosine_sparse(self, a: dict, b: dict) -> float:
+        keys = a.keys() & b.keys()
+        num = sum(a[i] * b[i] for i in keys)
+        na = math.sqrt(sum(v * v for v in a.values()))
+        nb = math.sqrt(sum(v * v for v in b.values()))
+        return 0.0 if na == 0 or nb == 0 else num / (na * nb)
+
+    def topk_sparse(self, query_vec: dict, doc_vecs: list, k: int = 5):
+        scores = [(i, self.cosine_sparse(query_vec, v)) for i, v in enumerate(doc_vecs)]
+        scores.sort(key=lambda x: x[1], reverse=True)
+        return scores[:k]
 
 def jaccard_similarity(doc1, doc2):
     """Compute Jaccard similarity between two documents (strings)."""
@@ -99,7 +125,7 @@ def rand10():
 ######## simple backward:
 import torch
 import torch.nn as nn
-import torch.functional as F
+import torch.nn.functional as F
 
 x = torch.randn(512,128)
 y = torch.randn(512,1)
@@ -121,30 +147,42 @@ for step in range(2000):
     loss.backward()
     opt.step()
 
+if __name__ == "__main__":
+    # Tiny TFIDF demo
+    docs = [
+        "The quick brown fox",
+        "Jumped over the lazy dog",
+        "A quick brown dog"
+    ]
+    tfidf = TFIDF()
+    vecs = tfidf.fit_transform(docs)
+    q = "quick dog"
+    q_vec = tfidf.transform([q])[0]
+    top = tfidf.topk_sparse(q_vec, vecs, k=2)
+    print("Top matches:", top)
 
 ######## 
 
 from typing import List
 
 # quicksort (1) : For
-def sortArray(self, nums: List[int]) -> List[int]:
-        
-        def quicksort(l,r):
-            if l>=r:
-                return
-            i = l
-            pivot = nums[r]
-            for j in range(l,r):
-                if nums[j]<=pivot:
-                    nums[i],nums[j]=nums[j],nums[i]
-                    i +=1
-            nums[i],nums[r] = nums[r],nums[i]
-            quicksort(l,i-1)
-            quicksort(i+1,r)
-            
+def sortArray(nums: List[int]) -> List[int]:
 
-        quicksort(0,len(nums)-1)
-        return nums
+    def quicksort(l, r):
+        if l >= r:
+            return
+        i = l
+        pivot = nums[r]
+        for j in range(l, r):
+            if nums[j] <= pivot:
+                nums[i], nums[j] = nums[j], nums[i]
+                i += 1
+        nums[i], nums[r] = nums[r], nums[i]
+        quicksort(l, i - 1)
+        quicksort(i + 1, r)
+
+    quicksort(0, len(nums) - 1)
+    return nums
 
 # quickselect: Find the kth largest element in a list
 def quickselect(nums, k):
@@ -172,44 +210,63 @@ def quickselect(nums, k):
 ##########################################
 ##########################################
 
-## LoRA simple code
+## LoRA simple code (optional)
 
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+try:
+    from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
+except Exception:
+    AutoModelForCausalLM = AutoTokenizer = TrainingArguments = Trainer = None  # type: ignore
 
-# Load base model and tokenizer
-model_name = "gpt2"
-model = AutoModelForCausalLM.from_pretrained(model_name)
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+# Dynamically import PEFT to avoid linter errors when it's not installed
+import importlib, importlib.util
+_peft_spec = importlib.util.find_spec("peft")
+if _peft_spec is not None:
+    peft = importlib.import_module("peft")
+    LoraConfig = getattr(peft, "LoraConfig", None)
+    get_peft_model = getattr(peft, "get_peft_model", None)
+    prepare_model_for_kbit_training = getattr(peft, "prepare_model_for_kbit_training", None)
+    _HAS_PEFT = all([LoraConfig, get_peft_model, prepare_model_for_kbit_training])
+else:
+    _HAS_PEFT = False
 
-# Prepare model for LoRA
-model = prepare_model_for_kbit_training(model)
-lora_config = LoraConfig(
-    r=8,              # LoRA rank
-    lora_alpha=16,    # LoRA scaling
-    target_modules=["c_attn"],  # Layer(s) to apply LoRA to (for GPT-2)
-    lora_dropout=0.05,
-    bias="none",
-    task_type="CAUSAL_LM"
-)
-model = get_peft_model(model, lora_config)
+if _HAS_PEFT:
+    # Load base model and tokenizer
+    model_name = "gpt2"
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-# Example data
-texts = ["Hello, how are you?", "LoRA is a parameter-efficient fine-tuning method."]
-inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
+    # Prepare model for LoRA
+    model = prepare_model_for_kbit_training(model)
+    lora_config = LoraConfig(
+        r=8,              # LoRA rank
+        lora_alpha=16,    # LoRA scaling
+        target_modules=["c_attn"],  # Layer(s) to apply LoRA to (for GPT-2)
+        lora_dropout=0.05,
+        bias="none",
+        task_type="CAUSAL_LM"
+    )
+    model = get_peft_model(model, lora_config)
 
-# Dummy training loop (for demonstration)
-labels = inputs["input_ids"]
-outputs = model(**inputs, labels=labels)
-loss = outputs.loss
-loss.backward()
-print("Loss:", loss.item())
+    # Example data
+    texts = ["Hello, how are you?", "LoRA is a parameter-efficient fine-tuning method."]
+    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
+
+    # Dummy training loop (for demonstration)
+    labels = inputs["input_ids"]
+    outputs = model(**inputs, labels=labels)
+    loss = outputs.loss
+    loss.backward()
+    print("Loss:", loss.item())
+else:
+    # Optional demo not run; PEFT/transformers not fully available.
+    pass
 
 
 ################
-# single head attention
-
-d = Q.size[-1]
-score = (Q @ K) /(d**0.5)
-weight = F.softmax(score)
-out = weight @ V
+# single head attention (toy snippet; Q, K, V are placeholders)
+# Q, K, V expected shapes: (batch, seq_len, d)
+# Uncomment and define Q,K,V before using
+# d = Q.size(-1)
+# score = (Q @ K.transpose(-2, -1)) / (d ** 0.5)
+# weight = F.softmax(score, dim=-1)
+# out = weight @ V
