@@ -404,6 +404,18 @@ def main():
                 "approx_train_samples": approx_train_samples,
                 "approx_samples_per_sec": approx_throughput
             }, f, indent=2)
+        # Print a concise durations/throughput summary for quick inspection
+        try:
+            print("Durations summary:")
+            print(f"  train_seconds: {train_seconds:.2f}s")
+            print(f"  eval_seconds:  {eval_seconds:.2f}s")
+            if approx_throughput is not None:
+                print(f"  approx_samples_per_sec: {approx_throughput:.2f} samples/s")
+            else:
+                print("  approx_samples_per_sec: N/A")
+        except Exception:
+            # Non-fatal; don't raise if printing fails in weird environments
+            pass
     except Exception as e:
         print(f"Warning: failed to write durations.json: {e}")
 
