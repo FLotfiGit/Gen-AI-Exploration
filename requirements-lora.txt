@@ -6,3 +6,8 @@ safetensors>=0.4.2
 # Optional for 8-bit/4-bit
 bitsandbytes>=0.43.0; platform_system != "Darwin" or platform_machine == "x86_64"
 # Note: bitsandbytes support on Apple Silicon is limited; skip where unavailable.
+# macOS note: On macOS it's common to see OpenMP runtime conflicts
+# (e.g., "Initializing libiomp5.dylib, but found libomp.dylib already initialized").
+# If you hit this locally, one quick (unsafe) workaround is to set
+# KMP_DUPLICATE_LIB_OK=TRUE before running Python. Prefer fixing native
+# library mismatches where possible.
