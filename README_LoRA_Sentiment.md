@@ -52,6 +52,25 @@ Notes: When `--config` is provided, matching keys overwrite the parsed CLI value
 
 `durations.json` also includes an approximate `approx_samples_per_sec` throughput metric.
 
+### Interpreting durations.json
+
+After a run the script writes `durations.json` to the `output_dir`. Typical structure:
+
+```json
+{
+  "train_seconds": 12.3,
+  "eval_seconds": 1.4,
+  "approx_train_samples": 1000,
+  "approx_samples_per_sec": 81.3
+}
+```
+
+- `train_seconds` / `eval_seconds`: wall-clock seconds spent in the train/eval call measured locally.
+- `approx_train_samples`: a conservative estimate of the number of training samples processed (uses `len(train_dataset) * epochs`, or a 1-step estimate when `--max_steps` is used).
+- `approx_samples_per_sec`: `approx_train_samples / train_seconds` when `train_seconds > 0`, otherwise `null`.
+
+Use `approx_samples_per_sec` as a rough indicator of throughput to compare device/configuration changes. It is approximate because it ignores gradient accumulation, loss of time to dataloader/CPU bottlenecks, and possible step limiting via `--max_steps`.
+
 ## Predict-only mode
 
 Run inference from a previously saved `output_dir` (no training):
@@ -86,3 +105,15 @@ See `requirements-lora.txt` for a minimal set of dependencies.
 - If SST-2 can’t be fetched, the script automatically falls back to a tiny synthetic dataset.
 - Use `--target_modules` to precisely control which layers LoRA attaches to.
 - For faster training on GPUs, consider `--fp16` or `--bf16` (hardware/driver dependent).
+
+### macOS OpenMP runtime note
+
+On macOS you may encounter an OpenMP runtime conflict error when importing some numerical libraries (e.g. "Initializing libiomp5.dylib, but found libomp.dylib already initialized"). This is caused by multiple OpenMP runtimes being linked into different native libraries. A safe, conservative approach is to prefer installing packages that don't statically link OpenMP on macOS.
+
+If you need a quick workaround for local experimentation (unsafe for production), set the environment variable KMP_DUPLICATE_LIB_OK=TRUE before running the script:
+
+```bash
+KMP_DUPLICATE_LIB_OK=TRUE python LoRA_FineTuning_Sentiment.py --dry_run
+```
+
+This bypasses the runtime check but may cause instability in edge cases. Prefer fixing the underlying native library mismatch when possible.
