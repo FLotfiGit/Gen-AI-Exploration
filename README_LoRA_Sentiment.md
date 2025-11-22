@@ -81,6 +81,23 @@ python LoRA_FineTuning_Sentiment.py \
   --predict_texts "Amazing product!||This was awful."
 ```
 
+## CI validation workflow
+
+This repository includes a lightweight GitHub Actions workflow that runs a dry-run validation (`tools/validate_lora_dryrun.py`) on pushes and pull requests touching the LoRA script or validator. The workflow installs a minimal set of dependencies and runs the validator to ensure the `--dry_run` code path remains runnable.
+
+You can run the same validation locally:
+
+```bash
+python tools/validate_lora_dryrun.py
+```
+
+On macOS, if you encounter an OpenMP runtime abort, run:
+
+```bash
+KMP_DUPLICATE_LIB_OK=TRUE python tools/validate_lora_dryrun.py
+```
+
+
 ## Example: early stopping and merged export
 
 ```bash

@@ -1,0 +1,39 @@
+name: LoRA Dry-Run Validation
+
+on:
+  push:
+    paths:
+      - 'LoRA_FineTuning_Sentiment.py'
+      - 'tools/validate_lora_dryrun.py'
+      - 'requirements-lora.txt'
+  pull_request:
+    paths:
+      - 'LoRA_FineTuning_Sentiment.py'
+      - 'tools/validate_lora_dryrun.py'
+      - 'requirements-lora.txt'
+
+jobs:
+  validate-dryrun:
+    name: Validate LoRA dry-run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install minimal dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Install a minimal, compatible set. Avoid bitsandbytes on CI by excluding it.
+          pip install "transformers>=4.40.0" "datasets>=2.18.0" "peft>=0.11.0" "accelerate>=0.31.0" "safetensors>=0.4.2"
+
+      - name: Run validate_lora_dryrun.py
+        run: |
+          python tools/validate_lora_dryrun.py
+        env:
+          # Avoid OpenMP aborts on some runners; safe for CI quick checks
+          KMP_DUPLICATE_LIB_OK: TRUE
