@@ -1,5 +1,7 @@
 # LoRA Sentiment Fine-Tuning (DistilBERT)
 
+[![LoRA dry-run validation](https://github.com/FLotfiGit/Gen-AI-Exploration/actions/workflows/validate_lora.yml/badge.svg)](https://github.com/FLotfiGit/Gen-AI-Exploration/actions/workflows/validate_lora.yml)
+
 This is a clean, runnable example of LoRA fine-tuning for binary sentiment classification using DistilBERT.
 It supports GLUE/SST-2 (online) and a synthetic fallback dataset (offline), plus quality-of-life flags for training control.
 
