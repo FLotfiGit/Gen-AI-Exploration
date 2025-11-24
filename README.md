@@ -24,3 +24,19 @@ Try it:
 
 Note: The optional LoRA demo inside `coding_camp.py` is guarded and will only run if the `peft` and `transformers` libraries are available.
 
+### LLaMA LoRA demo
+
+There is a small, guarded demo `LoRA_Llama_Demo.py` that shows how to attach a LoRA adapter to a causal LM (LLaMA-family). By default it runs in `--dry_run` mode so it won't download very large models during a quick check.
+
+Quick usage:
+
+```bash
+# dry run (no downloads)
+python LoRA_Llama_Demo.py --dry_run
+
+# actually run generation (may download model and requires transformers/peft)
+python LoRA_Llama_Demo.py --run_gen --model_name "meta-llama/Llama-2-7b-chat-hf"
+```
+
+Note: Running `--run_gen` requires appropriate resources and dependencies. The repo includes a lightweight validator `tools/validate_llama_demo.py` that runs the demo in `--dry_run` mode for CI or local checks.
+
