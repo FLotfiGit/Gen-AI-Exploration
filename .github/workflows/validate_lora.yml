@@ -31,9 +31,15 @@ jobs:
           # Install a minimal, compatible set. Avoid bitsandbytes on CI by excluding it.
           pip install "transformers>=4.40.0" "datasets>=2.18.0" "peft>=0.11.0" "accelerate>=0.31.0" "safetensors>=0.4.2"
 
-      - name: Run validate_lora_dryrun.py
+      - name: Run LoRA dry-run validator
         run: |
           python tools/validate_lora_dryrun.py
         env:
           # Avoid OpenMP aborts on some runners; safe for CI quick checks
+          KMP_DUPLICATE_LIB_OK: TRUE
+
+      - name: Run LLaMA demo dry-run validator
+        run: |
+          python tools/validate_llama_demo.py
+        env:
           KMP_DUPLICATE_LIB_OK: TRUE

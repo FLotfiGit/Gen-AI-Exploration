@@ -17,6 +17,7 @@ Examples:
 """
 import argparse
 import sys
+import logging
 
 
 def main():
@@ -27,14 +28,18 @@ def main():
     parser.add_argument("--r", type=int, default=8, help="LoRA rank for demo")
     args = parser.parse_args()
 
+    # Configure simple logging with plain messages so tests/CI can match output
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    log = logging.getLogger("llama_demo")
+
     if args.dry_run:
-        print("[DRY RUN] LLaMA LoRA demo would attach LoRA(r={}) to model '{}'.".format(args.r, args.model_name))
-        print("To actually run generation, call with --run_gen and ensure transformers/peft are installed.")
+        log.info("[DRY RUN] LLaMA LoRA demo would attach LoRA(r=%d) to model '%s'.", args.r, args.model_name)
+        log.info("To actually run generation, call with --run_gen and ensure transformers/peft are installed.")
         return 0
 
     # Only attempt real work if explicitly requested
     if not args.run_gen:
-        print("No action requested. Use --dry_run or --run_gen.")
+        log.info("No action requested. Use --dry_run or --run_gen.")
         return 0
 
     # Try to import transformers and peft dynamically so this file can be imported safely
@@ -43,9 +48,9 @@ def main():
         transformers = importlib.import_module("transformers")
         peft = importlib.import_module("peft")
     except Exception as e:
-        print("Required libraries not available (transformers/peft). Install them to run generation:")
-        print("  pip install transformers peft")
-        print("Error:", e)
+        log.error("Required libraries not available (transformers/peft). Install them to run generation:")
+        log.error("  pip install transformers peft")
+        log.error("Error: %s", e)
         return 2
 
     # Perform a minimal attach + generation demo
@@ -54,23 +59,23 @@ def main():
         from peft import LoraConfig, get_peft_model
 
         model_name = args.model_name
-        print(f"Loading tokenizer and model: {model_name} (this may download large files)...")
+        log.info("Loading tokenizer and model: %s (this may download large files)...", model_name)
         tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
         model = AutoModelForCausalLM.from_pretrained(model_name)
 
         # Attach a tiny LoRA adapter (demo only)
         lora_cfg = LoraConfig(r=args.r, lora_alpha=16, target_modules=["q_proj", "v_proj"], lora_dropout=0.05, bias="none", task_type="CAUSAL_LM")
         model = get_peft_model(model, lora_cfg)
-        print("LoRA adapter attached. Running a short generation...")
+        log.info("LoRA adapter attached. Running a short generation...")
 
         prompt = "Translate to French: Hello world.\n"
         inputs = tokenizer(prompt, return_tensors="pt")
         gen = model.generate(**inputs, max_new_tokens=20)
         out = tokenizer.decode(gen[0], skip_special_tokens=True)
-        print("Generation result:\n", out)
+        log.info("Generation result:\n%s", out)
         return 0
     except Exception as e:
-        print("Demo failed during execution:", e)
+        log.error("Demo failed during execution: %s", e)
         return 3
 
 
