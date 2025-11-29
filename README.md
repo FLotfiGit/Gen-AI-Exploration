@@ -2,6 +2,8 @@
 
 A collection of experiments exploring Generative AI and LLM fine-tuning techniques.
 
+[![LoRA dry-run validation](https://github.com/FLotfiGit/Gen-AI-Exploration/actions/workflows/validate_lora.yml/badge.svg)](https://github.com/FLotfiGit/Gen-AI-Exploration/actions/workflows/validate_lora.yml)
+
 ### Highlights
 
 - LoRA Sentiment Fine-Tuning: See `LoRA_FineTuning_Sentiment.py` and `README_LoRA_Sentiment.md` for a production-ready training script with metrics, early stopping, config management, and optional quantization.
