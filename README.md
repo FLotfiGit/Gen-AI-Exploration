@@ -2,6 +2,26 @@
 
 A collection of experiments exploring Generative AI and LLM fine-tuning techniques.
 
+## Testing
+
+This repo includes lightweight smoke tests and validators to ensure the `--dry_run` paths and small demos remain runnable.
+
+- Run the LLaRA and LoRA validators locally:
+
+```bash
+python tools/validate_lora_dryrun.py
+python tools/validate_llama_demo.py
+```
+
+- Run the pytest suite (includes the TF‑IDF and LLaMA dry-run smoke tests):
+
+```bash
+python -m pip install pytest
+pytest -q
+```
+
+CI: The GitHub Actions workflow `validate_lora.yml` runs the validators and `pytest -q` on push/PR so these checks run automatically.
+
 [![LoRA dry-run validation](https://github.com/FLotfiGit/Gen-AI-Exploration/actions/workflows/validate_lora.yml/badge.svg)](https://github.com/FLotfiGit/Gen-AI-Exploration/actions/workflows/validate_lora.yml)
 
 ### Highlights
