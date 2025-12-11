@@ -22,6 +22,8 @@ pytest -q
 
 CI: The GitHub Actions workflow `validate_lora.yml` runs the validators and `pytest -q` on push/PR so these checks run automatically.
 
+Caching note: CI caches both pip (`~/.cache/pip`) and the Hugging Face hub (`~/.cache/huggingface`) to speed up tokenizer/model fetches. Locally you can clear these with `tools/cleanup_caches.py` (added in this repo) if you need a clean slate.
+
 [![LoRA dry-run validation](https://github.com/FLotfiGit/Gen-AI-Exploration/actions/workflows/validate_lora.yml/badge.svg)](https://github.com/FLotfiGit/Gen-AI-Exploration/actions/workflows/validate_lora.yml)
 
 ### Highlights
