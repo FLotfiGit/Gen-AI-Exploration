@@ -64,3 +64,17 @@ python LoRA_Llama_Demo.py --run_gen --model_name "meta-llama/Llama-2-7b-chat-hf"
 
 Note: Running `--run_gen` requires appropriate resources and dependencies. The repo includes a lightweight validator `tools/validate_llama_demo.py` that runs the demo in `--dry_run` mode for CI or local checks.
 
+### LoRA Experiments (TensorFlow)
+
+The `LoRA_Experiments.py` script is a heavy TensorFlow-based experiment for translation fine-tuning. It defaults to a safe dry-run to avoid large downloads and training:
+
+```bash
+# Dry-run (no downloads; quick)
+python LoRA_Experiments.py
+
+# Actually run (downloads wmt16, flan-t5-base; requires GPU/TPU and significant time)
+python LoRA_Experiments.py --run --max_train 2000 --max_eval 200
+```
+
+The script wraps heavy TensorFlow flow in a CLI with logging for transparency. It's useful for exploring LoRA rank and batch-size hyperparameter sweeps.
+
